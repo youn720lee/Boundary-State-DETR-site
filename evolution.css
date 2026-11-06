@@ -1,0 +1,30 @@
+.evolution figure { margin: 1.25rem 0 0; }
+.ev-wide {
+  position: relative;
+  left: 50%;
+  width: min(calc(100vw - 64px), 1280px);
+  transform: translateX(-50%);
+  margin-block: 24px 16px;
+}
+.ev-stack, .ev-frame { display: grid; }
+.ev-frame {
+  grid-area: 1 / 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .55s ease;
+}
+.ev-frame.ev-current { opacity: 1; z-index: 1; }
+.ev-frame img, .ev-frame picture { display: block; width: 100%; height: auto; }
+.ev-ap { display: none; }
+.ev-caption { margin-bottom: 1rem; }
+@media (max-width: 819px) {
+  .ev-wide { position: static; width: 100%; transform: none; }
+  .ev-frame { grid-template-columns: minmax(0,1fr) minmax(0,1.05fr); align-items: center; }
+  .ev-ap { display: block; border-left: 1px dashed #aaa; }
+}
+@media (max-width: 480px) {
+  .ev-frame { grid-template-columns: 1fr; justify-items: center; gap: 5px; }
+  .ev-frame picture { max-width: 270px; }
+  .ev-ap { width: min(100%, 312px); border-left: 0; border-top: 1px dashed #aaa; }
+}
+@media (prefers-reduced-motion: reduce) { .ev-frame { transition: none; } }

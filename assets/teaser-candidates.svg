@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="47 128 278 188">
+  <title>Two differently sized and positioned candidate boxes for the same bicycle</title>
+  <g fill="none" stroke-linejoin="round"><rect x="94" y="207" width="158" height="94" stroke="white" stroke-width="4.1" /><rect x="94" y="207" width="158" height="94" stroke="#2055b5" stroke-width="2.6" /></g>
+  <g><rect x="94" y="190" width="23" height="16" rx="2.8" fill="#2055b5"/><text x="105.5" y="202" fill="#fff" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="12">½</text></g>
+  <g fill="none" stroke-linejoin="round"><rect x="136" y="166" width="132" height="114" stroke="white" stroke-width="4.1" /><rect x="136" y="166" width="132" height="114" stroke="#b94716" stroke-width="2.6" stroke-dasharray="6 4" /></g>
+  <g><rect x="136" y="149" width="23" height="16" rx="2.8" fill="#b94716"/><text x="147.5" y="161" fill="#fff" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="12">½</text></g>
+</svg>

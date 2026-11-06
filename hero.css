@@ -1,0 +1,33 @@
+#boundary-viewer { width: 100%; max-width: 1152px; min-width: 0; margin: 0 auto; touch-action: pan-y pinch-zoom; }
+.example-panels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(6px, 1.1vw, 12px); }
+.teaser [hidden] { display: none; }
+#boundary-viewer .scene { min-width: 0; margin: 0; text-align: center; }
+#boundary-viewer .scene-image { position: relative; aspect-ratio: 278 / 188; overflow: hidden; border-radius: 10px; outline: 1px solid #bdbdbd; outline-offset: -1px; background: #ddd; }
+.scene-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.bike-panels .scene-image > img {
+  position: absolute; width: 179.856115%; max-width: none; height: auto; left: -16.906475%; top: -68.085106%; pointer-events: none;
+}
+.bike-panels .scene-image::after { content: ""; position: absolute; inset: 0; background-position: center; background-size: 100% 100%; background-repeat: no-repeat; pointer-events: none; }
+.bike-panels .scene:nth-of-type(1) .scene-image::after { background-image: url("./assets/teaser-mean.svg"); }
+.bike-panels .scene:nth-of-type(2) .scene-image::after { background-image: url("./assets/teaser-candidates.svg"); }
+.bike-panels .scene:nth-of-type(3) .scene-image::after { background-image: url("./assets/teaser-background.svg"); }
+.scene figcaption { padding: 9px 4px 0; line-height: 1.4; }
+.scene figcaption strong { display: block; color: #363636; font-size: 1rem; }
+.scene figcaption span { display: block; margin-top: 2px; color: #555; font-size: .93rem; }
+.example-controls, .stage-controls { display: flex; justify-content: center; align-items: center; gap: 7px; }
+.example-controls { margin: 0 auto 12px; }
+.example-controls output { min-width: 9rem; text-align: center; font-family: var(--display); font-weight: 600; font-variant-numeric: tabular-nums; }
+.example-controls button, .stage-controls button {
+  padding: 5px 11px; min-height: 38px; border-radius: 20px; border: 1px solid #c3c7ca;
+  background: white; color: #444; font: .86rem/1.4 var(--body); cursor: pointer;
+}
+.example-controls button:hover, .stage-controls button:hover { background: #eaf2f8; }
+.stage-controls { margin-top: 10px; }
+.stage-controls button[aria-pressed="true"] { background: #205575; color: white; border-color: #205575; }
+#boundary-viewer:focus-visible { outline: 2px solid #2066a4; outline-offset: 2px; }
+@media (max-width: 700px) {
+  .example-panels { grid-template-columns: 1fr; gap: 12px; }
+  .example-controls { gap: 5px; }
+  .example-controls output { min-width: 6.4rem; }
+  .stage-controls button { font-size: .8rem; min-height: 36px; }
+}

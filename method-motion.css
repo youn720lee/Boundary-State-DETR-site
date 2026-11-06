@@ -1,0 +1,17 @@
+.architecture-film, .detail-figure { min-width: 0; margin: 0; }
+.architecture-film { margin: 1.5rem 0 0; }
+.mm-stage picture, .mm-stage img { display: block; width: 100%; height: auto; }
+.architecture-film .mm-stage {
+  width: min(calc(100vw - 2.4rem), 1080px);
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  border-block: 1px solid #e0e3e5;
+}
+.architecture-film figcaption { margin: .9rem 0 0; }
+.method-details { margin-top: 2rem; }
+.method-details .detail-figure { margin: .4rem 0 1.2rem; }
+@media (max-width: 650px) {
+  .architecture-film .mm-stage { width: calc(100vw - 16px); }
+  .architecture-film figcaption, .detail-figure figcaption { font-size: .94rem; }
+}

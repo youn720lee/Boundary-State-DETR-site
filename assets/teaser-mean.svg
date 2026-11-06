@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="47 128 278 188">
+  <title>Mean reference box for two equally weighted hypotheses</title>
+  <g fill="none" stroke-linejoin="round"><rect x="115" y="186.5" width="145" height="104" stroke="white" stroke-width="4.1" /><rect x="115" y="186.5" width="145" height="104" stroke="#2055b5" stroke-width="2.6" /></g>
+  <g><rect x="115" y="169.5" width="21" height="16" rx="2.8" fill="#2055b5"/><text x="125.5" y="181.5" fill="#fff" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="12">μ</text></g>
+</svg>
