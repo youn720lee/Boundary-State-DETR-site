@@ -1,11 +1,13 @@
 """Build the comparison plates and their portable animated GIF.
 
 Run: python tools/make_evolution.py
+Figure 1-1 panels only: python tools/make_evolution.py --extended-only
 Requires Pillow, Playwright with Chromium, and an installed copy of Calibri
 (regular and bold). To use an existing
 Chromium-based browser, set EVOLUTION_CHROMIUM to the executable path.
 """
 
+import argparse
 from base64 import b64encode
 from html import escape
 from io import BytesIO
@@ -20,7 +22,12 @@ from playwright.sync_api import sync_playwright
 
 OUTPUT = Path(__file__).resolve().parents[1] / "assets" / "evolution"
 NAMES = ["D-FINE", "DEIM", "Boundary-State DETR"]
-DESCRIPTIONS = ["Refine the box edges", "Supervise more matches", "Filter incoming context"]
+DESCRIPTIONS = {
+    "D-FINE": "Refine the box edges",
+    "DEIM": "Supervise more matches",
+    "Boundary-State DETR": "Filter incoming context",
+    "RT-DETRv4": "Distill encoder features",
+}
 AP = [54.0, 54.7, None]
 COLORS = ["#a6a6a6", "#4e95d9", "#156082"]
 INK, GRAY, TEAL, GREEN = "#141414", "#e8e8e8", "#0b76a0", "#d9f2d0"
@@ -58,7 +65,7 @@ def input_photo():
             f'href="data:image/jpeg;base64,{image}"/>')
 
 
-def architecture(i):
+def architecture(method, letter):
     """Show the common image-to-prediction path and each method's intervention."""
     axis = 114
 
@@ -71,8 +78,8 @@ def architecture(i):
         return path(f"M{axis} {start}V{end}", TEAL, marker="up")
 
     pieces = [
-        label(149, 24, f"({chr(97+i)}) {NAMES[i]}", 22, 700),
-        label(149, 47, DESCRIPTIONS[i], 17, 400, "#424242"),
+        label(149, 24, f"({letter}) {method}", 22, 700),
+        label(149, 47, DESCRIPTIONS[method], 17, 400, "#424242"),
         input_photo(),
         label(axis, 446, "Input image", 16, 600),
         up(351, 341),
@@ -85,7 +92,7 @@ def architecture(i):
         node(70, "Class + box prediction", "#156082", 184, True),
         node(116, "FFN + prediction heads"),
     ]
-    if i == 0:
+    if method == "D-FINE":
         pieces += [
             up(222, 146),
             path("M207 130H248V151", "#626262", 1.3, "", "muted"),
@@ -97,7 +104,7 @@ def architecture(i):
             label(248, 206, "FDR box", 15, 600),
             label(248, 223, "distribution", 15),
         ]
-    elif i == 1:
+    elif method == "DEIM":
         # Training supervision connects to predictions, never to the image stem.
         pieces += [
             up(222, 146),
@@ -107,7 +114,24 @@ def architecture(i):
             label(237.5, 191, "Dense one-to-one", 14, 700),
             label(237.5, 207, "matching", 15, 700),
         ]
-    else:
+    elif method == "RT-DETRv4":
+        # Image -> teacher and encoder -> loss form a training branch.
+        # The distillation loss has no outgoing edge into the decoder.
+        pieces += [
+            up(222, 146),
+            path("M173 386H254V377", "#707070", 1.4, "4 3", "muted"),
+            rectangle(213, 342, 81, 32, "#f3f8fd", "#8ca9be", True),
+            label(254, 356, "DINOv3", 15, 700),
+            label(254, 370, "teacher", 14),
+            path("M254 342V298", "#707070", 1.4, "4 3", "muted"),
+            path("M206 325H228V298", "#707070", 1.4, "4 3", "muted"),
+            rectangle(211, 224, 83, 70, "#f3f8fd", "#8ca9be", True),
+            label(253, 240, "Training", 14, 600),
+            label(253, 259, "DSI loss", 16, 700),
+            label(253, 275, "weighted", 14),
+            label(253, 289, "by GAM", 14),
+        ]
+    elif method == "Boundary-State DETR":
         # Previous FDR predictions define candidate intervals at this decoder layer.
         pieces += [
             up(222, 208), up(159, 146),
@@ -191,15 +215,28 @@ def render_vectors(browser):
     cdp.send("CSS.enable")
     for stage in range(1,4):
         i=stage-1
-        panel=architecture(i)
+        panel=architecture(NAMES[i], chr(97+i))
         summary=chart(stage)
         save_plate(page, cdp, f"diagram-{stage}.svg", COLUMN_W, NAMES[i], panel)
         save_plate(page, cdp, f"ap-{stage}.svg", CHART_W, "Reported COCO box AP", summary)
-        panels="".join(f'<g transform="translate({10+j*COLUMN_W} 0)">{architecture(j)}</g>'
+        panels="".join(f'<g transform="translate({10+j*COLUMN_W} 0)">{architecture(NAMES[j], chr(97+j))}</g>'
                        for j in range(stage))
         rule=path("M916 12V437", "#858585", 1.5, "7 7")
         full=panels+rule+f'<g transform="translate(927 0)">{summary}</g>'
         save_plate(page, cdp, f"stage-{stage}.svg", PLATE_W, "Three detectors from input image to prediction and COCO box AP", full)
+    page.close()
+
+
+def render_extended(browser):
+    page = browser.new_page(device_scale_factor=3)
+    cdp = page.context.new_cdp_session(page)
+    cdp.send("DOM.enable")
+    cdp.send("CSS.enable")
+    for method, letter, filename in [
+        ("RT-DETRv4", "c", "rtv4-panel.svg"),
+        ("Boundary-State DETR", "d", "selective-panel.svg"),
+    ]:
+        save_plate(page, cdp, filename, COLUMN_W, method, architecture(method, letter))
     page.close()
 
 
@@ -226,9 +263,14 @@ def animate(browser):
 
 
 if __name__=="__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--extended-only", action="store_true", help="Build only the two additional Figure 1-1 plates")
+    args = parser.parse_args()
     opts={"executable_path":os.environ["EVOLUTION_CHROMIUM"]} if "EVOLUTION_CHROMIUM" in os.environ else {}
     with sync_playwright() as p:
         browser=p.chromium.launch(**opts)
-        render_vectors(browser)
-        animate(browser)
+        if not args.extended_only:
+            render_vectors(browser)
+            animate(browser)
+        render_extended(browser)
         browser.close()

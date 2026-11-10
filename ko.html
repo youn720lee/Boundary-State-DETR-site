@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#ffffff"><meta name="description" content="Boundary-State DETR는 후보 박스 안의 영상 특징으로 주변 문맥이 검출 쿼리까지 얼마나 전달될지 정한다."><title>Boundary-State DETR: 후보 박스를 가로지르는 문맥의 선택적 전달</title><link rel="alternate" hreflang="ko" href="ko.html"><link rel="alternate" hreflang="en" href="index.html"><link rel="icon" type="image/svg+xml" href="assets/mark.svg"><link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="site.css?v=paper-title"><link rel="stylesheet" href="hero.css?v=transport-v2"><link rel="stylesheet" href="evolution.css?v=transport-v2"><script defer src="evolution.js?v=autoplay"></script><script defer src="hero.js?v=transport-v2"></script><link rel="stylesheet" href="method-motion.css?v=transport-v2"><script defer src="architecture-film.js?v=transport-v2"></script></head>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#ffffff"><meta name="description" content="Boundary-State DETR는 후보 박스 안의 영상 특징으로 주변 문맥이 검출 쿼리까지 얼마나 전달될지 정한다."><title>Boundary-State DETR: 후보 박스를 가로지르는 문맥의 선택적 전달</title><link rel="alternate" hreflang="ko" href="ko.html"><link rel="alternate" hreflang="en" href="index.html"><link rel="icon" type="image/svg+xml" href="assets/mark.svg"><link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="site.css?v=paper-title"><link rel="stylesheet" href="hero.css?v=transport-v2"><link rel="stylesheet" href="evolution.css?v=figure-1-1"><script defer src="evolution.js?v=autoplay"></script><script defer src="hero.js?v=transport-v2"></script><link rel="stylesheet" href="method-motion.css?v=transport-v2"><script defer src="architecture-film.js?v=transport-v2"></script></head>
 <body id="top"><a href="#main" class="skip">연구 내용으로 건너뛰기</a>
 <nav class="language" aria-label="언어"><a lang="en" href="index.html">English</a><span class="divider">/</span><span aria-current="page">한국어</span></nav>
 <main id="main"><header class="mast"><h1>Boundary-State DETR: 후보 박스를 가로지르는 문맥의 선택적 전달</h1><div class="byline"><p class="authors">이윤관, 고주은</p><p class="affiliation">삼성전자 생산기술연구소</p></div><nav class="buttons" aria-label="연구 자료"><a href="https://github.com/youn720lee/Boundary-state-DETR">이전 모델 코드</a><a href="#evolution"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 3h5l2 1 2-1h5v11h-5l-2 1-2-1H2zM9 4v11"/></svg>방법 비교</a><a href="#architecture">모델 구조</a><a href="#results"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2v12h14M5.5 11V8M9 11V5M12.5 11V3"/></svg>실험 결과</a></nav></header>
@@ -55,6 +55,18 @@
 </div></div>
 <figcaption class="caption ev-caption"><strong>그림 1. 검출기에서 각 방법이 바꾸는 부분.</strong> (a) D-FINE은 디코더 층을 지날 때마다 박스의 네 경계 분포를 보정한다. (b) DEIM은 이 검출기를 학습할 때 일대일 매칭 수를 늘리고 매칭 품질을 손실에 반영한다. (c) Boundary-State DETR는 직전 층의 경계 분포로 어느 구간의 상태를 얼마나 읽을지 정한다. 각 구간 안의 영상 특징은 그곳을 지나 쿼리에 전달될 바깥 문맥의 양을 조절한다. (d)는 L 모델의 COCO val2017 박스 AP다.</figcaption>
 </figure>
+<details id="figure-1-1" class="ev-extension">
+<summary>그림 1-1. RT-DETRv4와 Boundary-State DETR는 어디가 다를까?</summary>
+<figure>
+<div class="ev-comparison" role="region" tabindex="0" aria-label="D-FINE부터 Boundary-State DETR까지 네 검출기의 구조도">
+<div><img src="assets/evolution/diagram-1.svg" width="298" height="450" loading="lazy" alt="(a) D-FINE은 박스 경계 분포를 보정한다."><p class="ev-score">54.0 <span>박스 AP</span></p></div>
+<div><img src="assets/evolution/diagram-2.svg" width="298" height="450" loading="lazy" alt="(b) DEIM은 학습 중 일대일 매칭 수를 늘린다."><p class="ev-score">54.7 <span>박스 AP</span></p></div>
+<div><img src="assets/evolution/rtv4-panel.svg" width="298" height="450" loading="lazy" alt="(c) RT-DETRv4는 학습할 때 깊은 인코더 특징을 DINOv3 교사 특징에 맞춘다. 추론 때는 검출기만 쓴다."><p class="ev-score">55.4 <span>박스 AP</span></p></div>
+<div><img src="assets/evolution/selective-panel.svg" width="298" height="450" loading="lazy" alt="(d) Boundary-State DETR는 마지막 교차 어텐션과 FFN 사이에서 Mamba로 바깥 문맥의 전달량을 정한다."><p class="ev-score">AP 측정 전</p></div>
+</div>
+<figcaption class="caption"><strong>그림 1-1. 인코더를 지도하는 방법과 디코더 쿼리를 갱신하는 방법.</strong> (c) RT-DETRv4는 학습할 때 DSI로 인코더의 깊은 층에서 얻은 특징을 DINOv3 교사 특징에 맞춘다. GAM은 그래디언트 크기에 따라 증류 손실의 가중치를 조절한다. 추론 때는 검출기만 실행한다. (d) 제안 모델은 마지막 교차 어텐션 뒤에서 후보 박스 안의 특징을 읽어, 바깥 문맥을 쿼리에 얼마나 더할지 정한다. 외부 교사 없이 학습하며 추론 때도 같은 연산을 쓴다. 패널 아래 수치는 L 모델의 COCO val2017 박스 AP다. <a href="https://arxiv.org/abs/2510.25257">RT-DETRv4 논문</a></figcaption>
+</figure>
+</details>
 </section>
 <section class="chapter" id="architecture" aria-labelledby="architecture-title"><h2 id="architecture-title">Boundary-State DETR</h2>
 <figure class="architecture-film" id="architecture-film">
