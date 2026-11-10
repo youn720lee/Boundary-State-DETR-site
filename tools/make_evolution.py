@@ -63,7 +63,7 @@ def architecture(i):
         label(x, 144, "Feed-forward network", 15),
         rectangle(38, 242, 222, 35, GRAY),
         label(x, 264, "Cross-attention + gateway", 15),
-        label(x, 309, "Query and image features", 14, 400, "#404040"),
+        label(x, 309, "Query and encoder features F" if i==2 else "Query and image features", 14, 400, "#404040"),
     ]
     if i == 1:
         pieces += [
@@ -76,16 +76,16 @@ def architecture(i):
         pieces += [
             # The green block interrupts the blue query path between CA and FFN.
             rectangle(34, 174, 230, 48, GREEN, "#a6ca96"),
-            label(x, 194, "BCSA", 16, 700, "#274725"),
+            label(x, 194, "BCSA on F", 16, 700, "#274725"),
             label(x, 212, "Boundary-weighted Mamba states", 13, 500),
             path("M149 241V223", TEAL, marker="up"),
             '<g transform="translate(14 198) rotate(-90)">'
             + label(0, 0, "Prior boundary distribution", 13, 600, "#156082") + '</g>',
             path("M19 198H33", TEAL, marker="up"),
-            rectangle(40, 328, 218, 45, "#fff8ef", "#b6401a", True),
-            label(x, 345, "Training only", 13, 700, RED),
-            label(x, 363, "One feature map → content + Δ", 14),
-            path("M258 350H279V198H265", RED, 1.4, "4 3", "edit"),
+            rectangle(25, 328, 248, 45, "#fff8ef", RED, True),
+            label(x, 345, "Training only · auxiliary decoder pass", 13, 700, RED),
+            label(x, 363, "F → F′ → BCSA → heads → auxiliary loss", 13),
+            path("M236 305H284V350H275", RED, 1.4, "4 3", "edit"),
         ]
     pieces += [
         label(x, 404, f"({chr(97+i)}) {NAMES[i]}", 20, 700, BLACK),

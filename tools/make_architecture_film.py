@@ -70,7 +70,7 @@ def map_desktop(focus):
     # Use the same bottom-up decoder, colors and line conventions as figure 1.
     items = [
         (136,["Class + box prediction"],TEAL,"white"), (194,["FFN + prediction heads"],GRAY,INK),
-        (260,["BCSA"],GREEN,MOSS), (331,["Self- / cross-attn + gate"],GRAY,INK),
+        (260,["BCSA on F"],GREEN,MOSS), (331,["Self- / cross-attn + gate"],GRAY,INK),
         (394,["Query selection + prior layers"],GRAY,INK), (456,["Backbone + encoder"],GRAY,INK),
     ]
     for y, lines, fill, color in items:
@@ -80,15 +80,17 @@ def map_desktop(focus):
     s += txt(161,543,"One input image",18,anchor="middle")
     s += arrow("M40 414H14V279H37",DARK)
     s += '<g transform="translate(32 393) rotate(-90)">' + txt(0,0,"Boundaries",15,DARK,True) + "</g>"
-    s += rectangle(26,567,270,57,TRAIN,RED,True)
-    s += txt(161,589,"TRAINING ONLY",15,RED,True,"middle")
-    s += txt(161,611,"Feature replay: content + Δ",18,RED,False,"middle")
-    s += arrow("M296 599H313V280H285",RED,dashed=True)
+    s += rectangle(26,556,270,81,TRAIN,RED,True)
+    s += txt(161,578,"TRAINING ONLY · DECODER REPLAY",15,RED,True,"middle")
+    s += txt(161,603,"F → F′ → BCSA → heads",18,INK,True,"middle")
+    s += txt(161,625,"Auxiliary detection loss",16,INK,False,"middle")
+    s += arrow("M283 475H315V599H299",RED,dashed=True)
+    s += txt(302,465,"F",16,RED,True,"middle")
     if focus == "state":
         s += path("M285 268H322L355 234",MOSS,2,"3 3")
         s += rectangle(37,257,248,44,"none",MOSS)
     elif focus == "train":
-        s += path("M297 578H321L355 540",RED,2,"3 3")
+        s += path("M297 627H332L355 601",RED,2,"3 3")
     return s
 
 
@@ -97,7 +99,7 @@ def map_mobile(focus):
     # inset, including its background branch, without shrinking either diagram.
     s = txt(20,94,"Detector overview",25,bold=True)
     parts = [(16,120,170,"Backbone + encoder",GRAY), (219,120,196,"Prior decoder layers",GRAY),
-             (449,120,226,"Self- / cross-attn + gate",GRAY), (449,199,226,"BCSA",GREEN),
+             (449,120,226,"Self- / cross-attn + gate",GRAY), (449,199,226,"BCSA on F",GREEN),
              (219,199,196,"FFN + heads",GRAY), (16,199,170,"Class + box",TEAL)]
     for x,y,w,v,fill in parts:
         s += block(x,y,w,43,[v],fill,"white" if fill==TEAL else MOSS if fill==GREEN else INK,18,EDGE if fill==GREEN else "none")
@@ -105,9 +107,11 @@ def map_mobile(focus):
         s += arrow(d)
     s += arrow("M317 164V178H465V195",DARK)
     s += txt(372,175,"Boundaries",14,DARK,False,"middle")
-    s += rectangle(28,271,405,46,TRAIN,RED,True)
-    s += txt(42,299,"TRAINING ONLY",16,RED,True) + txt(175,299,"Feature replay: content + Δ",18,RED)
-    s += arrow("M433 294H553V247",RED,dashed=True)
+    s += rectangle(28,257,647,63,TRAIN,RED,True)
+    s += txt(45,282,"TRAINING ONLY · DECODER REPLAY",16,RED,True)
+    s += txt(45,306,"F → F′ → BCSA → heads → auxiliary detection loss",18,INK,True)
+    s += arrow("M16 141H7V288H26",RED,dashed=True)
+    s += txt(12,183,"F",15,RED,True)
     if focus=="state":
         s += rectangle(446,196,232,49,"none",MOSS) + path("M675 223H686V333L664 359",MOSS,2,"3 3")
     elif focus=="train":
@@ -124,7 +128,7 @@ def opening(original):
     s += txt(334,227,"Used at training and inference",19)
     s += rectangle(334,275,289,78,TRAIN,RED,True)
     s += txt(350,302,"TRAINING ONLY",16,RED,True)
-    s += txt(350,330,"Replay with feature map F′",19)
+    s += txt(350,330,"Decoder replay: BCSA uses F′",19)
     s += path("M21 397H630","#d9d9d9",1)
     s += txt(22,434,"1   Follow the BCSA block",21,MOSS,True)
     s += txt(22,474,"2   Follow the auxiliary feature path",21,RED,True)
@@ -177,11 +181,11 @@ def training(original, stage=3):
         s += block(346,300,280,46,["Step size Δ′"],TRAIN,INK,19)
         s += arrow("M158 348v21h162v18",RED,dashed=True)
         s += arrow("M485 348v21H320",RED,dashed=True)
-        s += block(125,392,391,44,["BCSA with the same query and bounds"],GREEN,MOSS,19,EDGE)
+        s += block(78,392,484,44,["Shared BCSA · same query and boundary probabilities"],GREEN,MOSS,18,EDGE)
     if stage >= 3:
         s += arrow("M320 438v24",RED,dashed=True)
-        s += block(125,467,391,44,["0.1 × auxiliary detection loss"],TEAL,"white",20)
-        s += txt(320,544,"Class, L1 and GIoU on the same targets",18,INK,False,"middle")
+        s += block(78,467,484,44,["Shared heads → auxiliary class and box predictions"],GRAY,INK,18)
+        s += txt(320,544,"0.1 × detection loss on the same targets",19,INK,True,"middle")
     return s
 
 
