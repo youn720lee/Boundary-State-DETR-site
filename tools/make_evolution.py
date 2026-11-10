@@ -18,8 +18,8 @@ from playwright.sync_api import sync_playwright
 
 
 OUTPUT = Path(__file__).resolve().parents[1] / "assets" / "evolution"
-NAMES = ["D-FINE-L", "DEIM-D-FINE-L", "Boundary-State DETR-L"]
-DESCRIPTIONS = ["Distribution refinement", "Dense matching in training", "Boundary-conditioned state update"]
+NAMES = ["D-FINE", "DEIM", "Boundary-State DETR"]
+DESCRIPTIONS = ["Box distribution refinement", "Improved query matching", "Boundary-conditioned query update"]
 AP = [54.0, 54.7, None]
 COLORS = ["#a6a6a6", "#4e95d9", "#156082"]
 INK, GRAY, TEAL, GREEN = "#141414", "#e8e8e8", "#0b76a0", "#d9f2d0"
@@ -69,23 +69,20 @@ def architecture(i):
         pieces += [
             path("M60 36H17V350H39", "#707070", 1.3, "4 3", "muted"),
             rectangle(40, 328, 218, 45, "#f3f8fd", "#4e95d9", True),
-            label(x, 345, "Training only", 13, 700, "#22577a"),
-            label(x, 363, "Dense O2O matching + MAL", 14),
+            label(x, 346, "Dense one-to-one matching", 15, 700, "#22577a"),
+            label(x, 364, "Matchability-Aware Loss", 14),
         ]
     if i == 2:
         pieces += [
             # The green block interrupts the blue query path between CA and FFN.
             rectangle(34, 174, 230, 48, GREEN, "#a6ca96"),
-            label(x, 194, "BCSA on F", 16, 700, "#274725"),
-            label(x, 212, "Boundary-weighted Mamba states", 13, 500),
+            label(x, 194, "BCSA query update", 16, 700, "#274725"),
+            label(x, 212, "Weight region states by probability", 13, 500),
             path("M149 241V223", TEAL, marker="up"),
-            '<g transform="translate(14 198) rotate(-90)">'
-            + label(0, 0, "Prior boundary distribution", 13, 600, "#156082") + '</g>',
-            path("M19 198H33", TEAL, marker="up"),
-            rectangle(25, 328, 248, 45, "#fff8ef", RED, True),
-            label(x, 345, "Training only · auxiliary decoder pass", 13, 700, RED),
-            label(x, 363, "F → F′ → BCSA → heads → auxiliary loss", 13),
-            path("M236 305H284V350H275", RED, 1.4, "4 3", "edit"),
+            rectangle(40, 328, 218, 45, "#f3f8fd", "#4e95d9"),
+            label(x, 346, "Boundary probabilities", 15, 700, "#22577a"),
+            label(x, 364, "Four sides from the previous layer", 13),
+            path("M40 350H15V198H32", TEAL, marker="up"),
         ]
     pieces += [
         label(x, 404, f"({chr(97+i)}) {NAMES[i]}", 20, 700, BLACK),
@@ -100,7 +97,7 @@ def chart(stage):
     def to_y(value):
         return round(y0 - (y0-y1)*(value-50)/6, 2)
     items = [
-        label(229, 31, "COCO val2017", 18, 650),
+        label(229, 31, "COCO val2017 · L models", 18, 650),
         label(20, 48, "AP", 13, 600),
     ]
     for value in range(50, 57):
@@ -115,7 +112,7 @@ def chart(stage):
             items += [rectangle(xs[i]-28, y, 56, y0-y, COLORS[i]),
                       label(xs[i], y+25, f"{AP[i]:.1f}", 20, 700, "white")]
         items += [label(xs[i], 359, f"({chr(97+i)})", 15, 600),
-                  label(xs[i], 378, ["D-FINE", "DEIM", "BCSA"][i], 15, 500)]
+                  label(xs[i], 378, NAMES[i], 14, 500)]
     items += [label(229, 403, "(d) Box AP ↑", 20, 700, BLACK),
               label(229, 424, "AP axis shown from 50 to 56", 13, 400, "#5b5b5b"),
               label(218, 444, "D-FINE and DEIM report the two reference scores.", 13, 500, "#404040")]

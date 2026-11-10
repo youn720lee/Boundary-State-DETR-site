@@ -81,7 +81,7 @@ def map_desktop(focus):
     s += arrow("M40 414H14V279H37",DARK)
     s += '<g transform="translate(32 393) rotate(-90)">' + txt(0,0,"Boundaries",15,DARK,True) + "</g>"
     s += rectangle(26,556,270,81,TRAIN,RED,True)
-    s += txt(161,578,"TRAINING ONLY · DECODER REPLAY",15,RED,True,"middle")
+    s += txt(161,578,"Auxiliary decoder pass",19,INK,True,"middle")
     s += txt(161,603,"F → F′ → BCSA → heads",18,INK,True,"middle")
     s += txt(161,625,"Auxiliary detection loss",16,INK,False,"middle")
     s += arrow("M283 475H315V599H299",RED,dashed=True)
@@ -108,7 +108,7 @@ def map_mobile(focus):
     s += arrow("M317 164V178H465V195",DARK)
     s += txt(372,175,"Boundaries",14,DARK,False,"middle")
     s += rectangle(28,257,647,63,TRAIN,RED,True)
-    s += txt(45,282,"TRAINING ONLY · DECODER REPLAY",16,RED,True)
+    s += txt(45,282,"Auxiliary decoder pass",19,INK,True)
     s += txt(45,306,"F → F′ → BCSA → heads → auxiliary detection loss",18,INK,True)
     s += arrow("M16 141H7V288H26",RED,dashed=True)
     s += txt(12,183,"F",15,RED,True)
@@ -121,17 +121,21 @@ def map_mobile(focus):
 
 def opening(original):
     s = txt(18,35,"From image to detection",26,bold=True)
-    s += txt(18,69,"Both paths share the encoding of one augmented training image.",20)
+    s += txt(18,69,"One image supplies the encoder feature map F.",20)
     s += photograph(25,122,273,184,original)
-    s += txt(161,337,"One detector input",20,bold=True,anchor="middle")
-    s += block(334,139,289,57,["BCSA updates each query"],GREEN,MOSS,19,EDGE)
-    s += txt(334,227,"Used at training and inference",19)
+    s += arrow("M161 307v26")
+    s += block(25,337,273,48,["Backbone + encoder"],GRAY,INK,19)
+    s += path("M298 361H314V167",TEAL,1.9)
+    s += arrow("M314 167h18")
+    s += txt(300,353,"F",17,DARK,True)
+    s += arrow("M314 314h18",RED,dashed=True)
+    s += block(334,139,289,57,["BCSA on F"],GREEN,MOSS,20,EDGE)
+    s += txt(334,227,"Class and box predictions",19)
     s += rectangle(334,275,289,78,TRAIN,RED,True)
-    s += txt(350,302,"TRAINING ONLY",16,RED,True)
-    s += txt(350,330,"Decoder replay: BCSA uses F′",19)
+    s += txt(350,303,"Auxiliary decoder pass",20,INK,True)
+    s += txt(350,331,"BCSA on F′ → detection loss",19)
     s += path("M21 397H630","#d9d9d9",1)
-    s += txt(22,434,"1   Follow the BCSA block",21,MOSS,True)
-    s += txt(22,474,"2   Follow the auxiliary feature path",21,RED,True)
+    s += txt(22,437,"Inference follows the upper path.",20)
     return s
 
 
@@ -166,8 +170,7 @@ def state_inset(stage, original):
 
 def training(original, stage=3):
     s = txt(16,33,"One feature map for content and step size",27,bold=True)
-    s += txt(16,63,"Training only",18,RED,True)
-    s += txt(122,63,"·  Reuse the encoded training sample.",19)
+    s += txt(16,63,"The auxiliary decoder reuses F and the same box targets.",19)
     s += '<g transform="translate(18 88) scale(.55)">' + cell_panel("bicycle",original) + '</g>'
     s += txt(18,257,"Exterior cell centers",16)
     s += txt(272,110,"Encoder map F",21,bold=True)
@@ -246,7 +249,8 @@ def save(browser, size, suffix, original):
     poster=(f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img">'
             '<title>Boundary-State DETR with BCSA detail</title><desc>Candidate states are scaled by their '
             'boundary probabilities and summed, then read out, projected and added to the existing query. '
-            'The inset shows a training-only second decoder pass with a common feature source for content and step size.</desc>'
+            'The auxiliary decoder uses adjusted features for both content and step size and predicts the same targets. '
+            'Inference runs the ordinary decoder once.</desc>'
             f'<image width="{w}" height="{h}" href="data:image/png;base64,{data}"/></svg>\n')
     (DEST/f"architecture-film{suffix}.svg").write_text(poster, encoding="utf-8")
     plates=[p.resize(size,Image.Resampling.LANCZOS) for p in plates]

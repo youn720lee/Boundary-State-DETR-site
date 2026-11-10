@@ -1,4 +1,4 @@
-"""Render the exterior-cell example and the training-only decoder replay.
+"""Render the exterior-cell example and the auxiliary decoder pass.
 
 First run make_feature_panels.py with the three corresponding COCO images.
 Uses the same Calibri and Chromium/Pillow setup as make_architecture_film.py.
@@ -41,7 +41,7 @@ def working_example(x, y, width):
 
 
 def replay(x,y,w,show_loss):
-    s = txt(0,0,"Use F′ twice in the final BCSA",23,bold=True)
+    s = txt(0,0,"Use F′ in the auxiliary BCSA",23,bold=True)
     hw=(w-26)/2
     for i,word in enumerate(("Write content v′, u′","Set the step size Δ′")):
         xx=i*(hw+26)
@@ -68,7 +68,7 @@ def wrapper(w,h,body):
 
 def detail(frame, w, h, art):
     mobile = w < 600
-    s = txt(20,39,"Feature replay",30,bold=True) + txt(w-19,37,"TRAINING ONLY",17,RED,True,"end")
+    s = txt(20,39,"Context-adjusted features",30,bold=True)
     s += path(f"M20 58H{w-20}","#d4d4d4",1)
     s += txt(22,96,"Select exterior cells",23,bold=True)
     s += txt(22,126,"Centers outside all target boxes contribute to the mean.",17)
