@@ -1,287 +1,222 @@
-"""Build the persistent detector map and its BCSA/training magnification insets.
+"""Render the persistent selective-transport detector diagram and animated detail.
 
-Requires Pillow, Playwright, Chromium, and locally installed Calibri. Set
-EVOLUTION_CHROMIUM to the browser executable when using a system installation.
+Run python tools/make_architecture_film.py with Pillow, Playwright and Calibri.
+Set EVOLUTION_CHROMIUM to use an installed Chromium executable.
 """
 from base64 import b64encode
+from html import escape
 from io import BytesIO
 import os
+from pathlib import Path
 
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
-from make_feature_panels import ASSETS, cell_panel, crop_data
-
+ASSETS = Path(__file__).resolve().parents[1] / "assets"
 DEST = ASSETS / "contributions"
-from make_evolution import GRAY, GREEN, INK, RED, TEAL, path, rectangle, label
+DESKTOP, PORTRAIT = (1080, 660), (620, 1280)
+INK, MUTED, LINE = "#192126", "#4c565b", "#bfc9cb"
+BLUE, PALE_BLUE = "#156082", "#e9f2f6"
+GREEN, PALE_GREEN = "#48713f", "#e1efd9"
+GRAY = "#eceeee"
+
+TITLE = "Boundary-State DETR with selective boundary transport"
+DESC = ("A single COCO photograph enters the backbone and encoder. In the last decoder layer, "
+        "two opposed Mamba scans accumulate in-box content and carry exterior state across a "
+        "candidate interval. The cells inside the interval set its transmission. A shared query gate "
+        "admits the transmitted state. After averaging directions and weighting candidate states "
+        "by their boundary probabilities, the decoder projects the result into a residual query update.")
 
 
-BLUE, DARK, TRAIN = "#4e95d9", "#156082", "#fff8ef"
-MOSS, EDGE, MUTED = "#274725", "#a6ca96", "#505050"
-DESKTOP, PORTRAIT = (1080, 660), (700, 960)
+def text(x, y, words, size=20, *, bold=False, color=INK, anchor="start", italic=False):
+    attrs = (f'x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" fill="{color}" '
+             f'font-weight="{700 if bold else 400}" font-style="{"italic" if italic else "normal"}"')
+    return f'<text {attrs}>{escape(words)}</text>'
 
 
-def txt(x, y, text, size=18, color=INK, bold=False, anchor="start"):
-    return label(x, y, text, size, 700 if bold else 400, color, anchor)
+def rect(x, y, w, h, fill, edge="none", stroke=1):
+    return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{fill}" '
+            f'stroke="{edge}" stroke-width="{stroke}"/>')
 
 
-def block(x, y, w, h, lines, fill=GRAY, color=INK, size=18, edge="none"):
-    result = rectangle(x, y, w, h, fill, edge)
-    for n, value in enumerate(lines):
-        baseline = y + h/2 + size*.32 + (n-(len(lines)-1)/2)*(size+2)
-        result += txt(x+w/2, baseline, value, size, color, True, "middle")
-    return result
+def path(d, color=INK, stroke=1.7, *, arrow=False, dashed=False):
+    marker = f' marker-end="url(#m{color[1:]})"' if arrow else ""
+    dash = ' stroke-dasharray="4 4"' if dashed else ""
+    return f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{stroke}"{marker}{dash}/>'
 
 
-def arrow(d, color=TEAL, *, dashed=False):
-    marker = {TEAL: "flow", RED: "train", DARK: "blue", MOSS: "green", MUTED: "gray"}[color]
-    return path(d, color, 1.9, "6 4" if dashed else "", marker)
+def block(x, y, w, h, words, fill=GRAY, color=INK, size=18, edge="none"):
+    return rect(x, y, w, h, fill, edge) + text(x + w/2, y + h/2 + .32*size, words, size,
+                                             color=color, bold=True, anchor="middle")
 
 
-def photograph(x, y, w, h, source):
-    return f'<image x="{x}" y="{y}" width="{w}" height="{h}" preserveAspectRatio="none" href="{source}"/>'
+def group(x, y, scale, contents):
+    return f'<g transform="translate({x},{y}) scale({scale})">{contents}</g>'
 
 
-def example(x, y, kind, source):
-    # The source is the real 278 × 188 bicycle crop used in the project teaser.
-    w, h = 153, 97
-    result = photograph(x, y, w, h, source)
-    bx, by, bw, bh = (22, 44, 103, 43) if kind == "A" else (47, 22, 89, 57)
-    color = DARK if kind == "A" else "#2762a3"
-    result += f'<rect x="{x+bx}" y="{y+by}" width="{bw}" height="{bh}" fill="none" stroke="white" stroke-width="4"/>'
-    result += f'<rect x="{x+bx}" y="{y+by}" width="{bw}" height="{bh}" fill="none" stroke="{color}" stroke-width="2" stroke-dasharray="{"" if kind == "A" else "5 3"}"/>'
-    return result + block(x+bx, y+by, 20, 19, [kind], color, "white", 15)
-
-
-def vector(x, y, vals, fill, border, w=31):
-    result = ""
-    for i, value in enumerate(vals):
-        result += block(x+i*w, y, w, 28, [str(value)], fill, INK, 18, border)
-    return result
-
-
-def plus(x, y, radius=12):
-    return (f'<circle cx="{x}" cy="{y}" r="{radius}" fill="white" stroke="{TEAL}" stroke-width="2"/>'
-            + path(f"M{x-6} {y}h12M{x} {y-6}v12", TEAL, 2))
-
-
-def map_desktop(focus):
-    s = txt(20, 108, "Detector overview", 25, bold=True)
-    # Use the same bottom-up decoder, colors and line conventions as figure 1.
-    items = [
-        (136,["Class + box prediction"],TEAL,"white"), (194,["FFN + prediction heads"],GRAY,INK),
-        (260,["BCSA on F"],GREEN,MOSS), (331,["Self- / cross-attn + gate"],GRAY,INK),
-        (394,["Query selection + prior layers"],GRAY,INK), (456,["Backbone + encoder"],GRAY,INK),
+def detector(photo, phase):
+    """Bottom-up map. The two shorter routes originate from the encoder and previous decoder."""
+    cx, left, width = 150, 39, 222
+    nodes = [
+        (0, 34, "Class scores and boxes", BLUE),
+        (57, 38, "FFN and prediction heads", GRAY),
+        (119, 46, "Boundary State Transport", PALE_GREEN),
+        (190, 40, "Cross-attention + gateway", GRAY),
+        (255, 38, "Earlier decoder layers", GRAY),
+        (317, 38, "Backbone + encoder", GRAY),
     ]
-    for y, lines, fill, color in items:
-        s += block(40,y,242,38,lines,fill,color,18,EDGE if fill==GREEN else "none")
-    for a,b in [(194,176),(260,234),(331,300),(394,371),(456,434),(522,496)]:
-        s += arrow(f"M161 {a}V{b}")
-    s += txt(161,543,"One input image",18,anchor="middle")
-    s += arrow("M40 414H14V279H37",DARK)
-    s += '<g transform="translate(32 393) rotate(-90)">' + txt(0,0,"Boundaries",15,DARK,True) + "</g>"
-    s += rectangle(26,556,270,81,TRAIN,RED,True)
-    s += txt(161,578,"Auxiliary decoder pass",19,INK,True,"middle")
-    s += txt(161,603,"F → F′ → BCSA → heads",18,INK,True,"middle")
-    s += txt(161,625,"Auxiliary detection loss",16,INK,False,"middle")
-    s += arrow("M283 475H315V599H299",RED,dashed=True)
-    s += txt(302,465,"F",16,RED,True,"middle")
-    if focus == "state":
-        s += path("M285 268H322L355 234",MOSS,2,"3 3")
-        s += rectangle(37,257,248,44,"none",MOSS)
-    elif focus == "train":
-        s += path("M297 627H332L355 601",RED,2,"3 3")
-    return s
+    out = []
+    for index, (y, h, words, fill) in enumerate(nodes):
+        out.append(block(left, y, width, h, words, fill, "white" if index == 0 else INK, 18,
+                         GREEN if index == 2 else "none"))
+    stages = [(57, 35), (119, 96), (190, 166), (255, 231), (317, 294), (382, 356)]
+    out.extend(path(f"M{cx} {base}V{tip}", INK, arrow=True) for base, tip in stages)
+    # The state operator uses the encoder memory F and prior boundary probabilities p(B).
+    out.append(path("M39 336H13V143H37", BLUE, 1.5, arrow=True))
+    out.append('<g transform="translate(8 254) rotate(-90)">' +
+               text(0, 0, "Features", 14, color=BLUE, anchor="middle") + '</g>')
+    out.append(path("M261 274H284V143H263", BLUE, 1.5, arrow=True))
+    out.append('<g transform="translate(302 213) rotate(-90)">' +
+               text(0, 0, "Box probabilities", 14, color=BLUE, anchor="middle") + '</g>')
+    if phase in (1, 2, 3, 4, 5):
+        out.append(rect(left-2, 117, width+4, 50, "none", GREEN, 2.1))
+    out.append(f'<image x="84" y="382" width="132" height="87.648" href="{photo}"/>')
+    if phase == 0:
+        out.append(rect(81, 379, 138, 94, "none", BLUE, 2))
+        out.append(path("M150 378V356", BLUE, 3, arrow=True))
+    out.append(text(cx, 493, "Input image", 19, bold=True, anchor="middle"))
+    return "".join(out)
 
 
-def map_mobile(focus):
-    # Identical nodes run left to right in portrait. The map still fits above the
-    # inset, including its background branch, without shrinking either diagram.
-    s = txt(20,94,"Detector overview",25,bold=True)
-    parts = [(16,120,170,"Backbone + encoder",GRAY), (219,120,196,"Prior decoder layers",GRAY),
-             (449,120,226,"Self- / cross-attn + gate",GRAY), (449,199,226,"BCSA on F",GREEN),
-             (219,199,196,"FFN + heads",GRAY), (16,199,170,"Class + box",TEAL)]
-    for x,y,w,v,fill in parts:
-        s += block(x,y,w,43,[v],fill,"white" if fill==TEAL else MOSS if fill==GREEN else INK,18,EDGE if fill==GREEN else "none")
-    for d in ["M187 141h28", "M416 141h29", "M562 164v31","M448 221h-28","M218 221h-28"]:
-        s += arrow(d)
-    s += arrow("M317 164V178H465V195",DARK)
-    s += txt(372,175,"Boundaries",14,DARK,False,"middle")
-    s += rectangle(28,257,647,63,TRAIN,RED,True)
-    s += txt(45,282,"Auxiliary decoder pass",19,INK,True)
-    s += txt(45,306,"F → F′ → BCSA → heads → auxiliary detection loss",18,INK,True)
-    s += arrow("M16 141H7V288H26",RED,dashed=True)
-    s += txt(12,183,"F",15,RED,True)
-    if focus=="state":
-        s += rectangle(446,196,232,49,"none",MOSS) + path("M675 223H686V333L664 359",MOSS,2,"3 3")
-    elif focus=="train":
-        s += path("M217 319V355",RED,2,"3 3")
-    return s
+def marker_defs():
+    return '<defs>' + ''.join(
+        f'<marker id="m{color[1:]}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" '
+        f'markerHeight="5" orient="auto"><path d="M0 0L8 4L0 8Z" fill="{color}"/></marker>'
+        for color in (INK, BLUE, GREEN, MUTED, LINE)
+    ) + '</defs>'
 
 
-def opening(original):
-    s = txt(18,35,"From image to detection",26,bold=True)
-    s += txt(18,69,"One image supplies the encoder feature map F.",20)
-    s += photograph(25,122,273,184,original)
-    s += arrow("M161 307v26")
-    s += block(25,337,273,48,["Backbone + encoder"],GRAY,INK,19)
-    s += path("M298 361H314V167",TEAL,1.9)
-    s += arrow("M314 167h18")
-    s += txt(300,353,"F",17,DARK,True)
-    s += arrow("M314 314h18",RED,dashed=True)
-    s += block(334,139,289,57,["BCSA on F"],GREEN,MOSS,20,EDGE)
-    s += txt(334,227,"Class and box predictions",19)
-    s += rectangle(334,275,289,78,TRAIN,RED,True)
-    s += txt(350,303,"Auxiliary decoder pass",20,INK,True)
-    s += txt(350,331,"BCSA on F′ → detection loss",19)
-    s += path("M21 397H630","#d9d9d9",1)
-    s += txt(22,437,"Inference follows the upper path.",20)
-    return s
+def scan_detail(phase):
+    """Scalar, single-row worked example connected to the same vertical detector in every frame."""
+    s = []
+    if phase in (1, 2):
+        s.append(rect(8, 12, 4, 177, BLUE))
+    elif phase in (3, 4):
+        s.append(rect(8, 217, 4, 174, GREEN))
+    elif phase == 5:
+        s.append(rect(8, 423, 4, 78, BLUE))
+    s.append(text(21, 31, "One row of encoder features", 23, bold=True))
+    s.append(text(21, 57, "Inside the box, the numbers show illustrative cell retentions.", 19, color=MUTED))
+
+    # The arrows encode direction. Their moving active segment and dot mark progress
+    # through the interval; the three cell values are illustrative retentions, not measurements.
+    forward = phase in (1, 2)
+    reverse = phase in (3, 4)
+    s.append(text(22, 94, "Left to right", 17, color=BLUE if forward else MUTED))
+    s.append(path("M121 89H577", BLUE if forward else MUTED, 2 if forward else 1.3, arrow=True))
+    s.append(text(22, 189, "Right to left", 17, color=BLUE if reverse else MUTED))
+    s.append(path("M577 184H121", BLUE if reverse else MUTED, 2 if reverse else 1.3, arrow=True))
+    for i, val in enumerate(("Outside", "0.8", "0.5", "0.6", "Outside")):
+        xx, ww = ((22, 149), (171, 84), (255, 84), (339, 84), (423, 156))[i]
+        s.append(rect(xx, 103, ww, 56, "#f0f2f2" if i in (0, 4) else ["#e0edd8", "#c5ddc0", "#d3e4cb"][i-1],
+                      "white", 2))
+        s.append(text(xx+ww/2, 138, val, 21, anchor="middle", bold=i not in (0, 4)))
+    for x in (171, 423):
+        s.append(path(f"M{x} 97v70", GREEN, 1.7, dashed=True))
+    if forward or reverse:
+        cy = 89 if forward else 184
+        cx = (213, 381, 381, 213)[phase-1]
+        start = 121 if forward else 577
+        s.append(path(f"M{start} {cy}H{cx}", BLUE, 3.5))
+        s.append(f'<circle cx="{cx}" cy="{cy}" r="5" fill="{BLUE}"/>')
+
+    s.append(path("M21 206H579", LINE, 1))
+    s.append(text(21, 241, "Transmission through the box", 23, bold=True))
+    s.append(text(21, 272, "T  =  0.8 × 0.5 × 0.6  =  0.24", 25, bold=True, color=GREEN))
+    s.append(text(21, 301, "Each cell’s features set its Mamba retention (one channel shown).", 18, color=MUTED))
+    s.append(text(21, 334, "State at each exit", 19, bold=True))
+    s.append(block(21, 347, 148, 44, "Inside state", GRAY, size=18))
+    s.append(text(188, 376, "+", 25, bold=True, anchor="middle"))
+    s.append(block(211, 347, 368, 44, "Query gate  ×  T  ×  incoming state", PALE_GREEN,
+                  size=19, edge=GREEN if phase in (3, 4) else "none"))
+    s.append(path("M21 409H579", LINE, 1))
+    s.append(text(21, 444, "Query update", 23, bold=True))
+    flow = ((21, 142, "Average scans"), (192, 212, "Weight states by p(box)"), (433, 146, "Project + add"))
+    for n, (x, w, words) in enumerate(flow):
+        s.append(block(x, 458, w, 41, words, PALE_BLUE if n < 2 else BLUE,
+                       INK if n < 2 else "white", 18, BLUE if phase == 5 and n < 2 else "none"))
+    s.extend([path("M165 479h23", BLUE, arrow=True), path("M406 479h23", BLUE, arrow=True)])
+    return "".join(s)
 
 
-def state_inset(stage, original):
-    s = txt(16,33,"BCSA",28,MOSS,True) + txt(96,33,"Boundary-weighted Mamba states",24,bold=True)
-    s += txt(16,63,"Two candidate boxes from the previous decoder layer",19)
-    for x, kind, prob, vals, border in [(70,"A","0.75",(4,0,2),DARK),(396,"B","0.25",(0,4,2),"#2762a3")]:
-        s += example(x,79,kind,original)
-        s += txt(x+77,200,"Box "+kind,18,border,True,"middle")
-        s += arrow(f"M{x+77} 206v19",DARK)
-        s += txt(x+77,250,"Mamba state "+kind,19,border,True,"middle")
-        s += vector(x+30,258,vals,"#eef5fa",border)
-        if stage>=2:
-            s += arrow(f"M{x+77} 289v22",DARK)
-            s += txt(x+77,335,"× "+prob,22,border,True,"middle")
-    if stage>=2:
-        s += txt(312,325,"Boundary",16,MUTED,False,"middle")+txt(312,344,"probability",16,MUTED,False,"middle")
-        s += arrow("M147 342v26h150",DARK)+arrow("M473 342v26H327",DARK)
-        s += plus(312,368)
-        s += arrow("M312 382v13",MOSS)
-        s += txt(253,419,"Weighted state",18,MOSS,True,"end")
-        s += vector(268,399,(3,1,2),GREEN,EDGE)
-    if stage>=3:
-        s += arrow("M313 429v14",MOSS)
-        s += block(174,448,279,35,["Query readout + projection"],GRAY,INK,17)
-        s += arrow("M313 484v22",MOSS)
-        s += txt(94,527,"Existing query q",18,DARK,True) + arrow("M220 521h76")
-        s += plus(313,521)+arrow("M327 521h34")
-        s += block(366,502,190,38,["Updated query q′"],TEAL,"white",19)
-    return s
+def scene(size, phase, photo):
+    mobile = size == PORTRAIT
+    w, h = size
+    if mobile:
+        drawing = text(16, 28, "Selective transport", 25, bold=True)
+        drawing += rect(10, 39, 600, 515, "white", LINE)
+        drawing += group(10, 41, 1, scan_detail(phase))
+        drawing += text(16, 587, "Detector", 25, bold=True)
+        # The input image stays below all other nodes, including the detail callout.
+        drawing += group(97, 566, 1.42, detector(photo, phase))
+        drawing += path("M469 736L539 710L595 554", GREEN, 1.4, dashed=True)
+    else:
+        drawing = text(22, 44, "Detector", 28, bold=True)
+        drawing += text(379, 44, "Selective transport", 28, bold=True)
+        drawing += rect(365, 63, 695, 570, "white", LINE)
+        drawing += group(377, 71, 1.12, scan_detail(phase))
+        drawing += group(18, 74, 1.11, detector(photo, phase))
+        drawing += path("M311 208L365 168", GREEN, 1.4, dashed=True)
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" '
+            f'role="img"><title>{TITLE}</title><desc>{DESC}</desc>{marker_defs()}'
+            f'<rect width="{w}" height="{h}" fill="white"/><g font-family="Calibri, Arial, sans-serif">'
+            f'{drawing}</g></svg>\n')
 
 
-def training(original, stage=3):
-    s = txt(16,33,"One feature map for content and step size",27,bold=True)
-    s += txt(16,63,"The auxiliary decoder reuses F and the same box targets.",19)
-    s += '<g transform="translate(18 88) scale(.55)">' + cell_panel("bicycle",original) + '</g>'
-    s += txt(18,257,"Exterior cell centers",16)
-    s += txt(272,110,"Encoder map F",21,bold=True)
-    s += txt(272,144,"At each level, take each channel’s mean",19)
-    s += txt(272,167,"over cells outside every GT box.",19)
-    s += block(270,196,351,48,["F′ = F − 0.5 × exterior mean"],"#eaf4f8",INK,21)
-    if stage >= 2:
-        s += arrow("M444 247v21H160v27",RED,dashed=True)
-        s += arrow("M444 268h42v27",RED,dashed=True)
-        s += block(18,300,280,46,["Content projections v′ and u′"],TRAIN,INK,19)
-        s += block(346,300,280,46,["Step size Δ′"],TRAIN,INK,19)
-        s += arrow("M158 348v21h162v18",RED,dashed=True)
-        s += arrow("M485 348v21H320",RED,dashed=True)
-        s += block(78,392,484,44,["Shared BCSA · same query and boundary probabilities"],GREEN,MOSS,18,EDGE)
-    if stage >= 3:
-        s += arrow("M320 438v24",RED,dashed=True)
-        s += block(78,467,484,44,["Shared heads → auxiliary class and box predictions"],GRAY,INK,18)
-        s += txt(320,544,"0.1 × detection loss on the same targets",19,INK,True,"middle")
-    return s
-
-
-def scene(size, frame, original):
-    width,height = size
-    portrait = size==PORTRAIT
-    focus = "train" if frame==4 else "state" if frame else None
-    x,y = (23,368) if portrait else (368,76)
-    title = "Boundary-State DETR"
-    desc = ("Decoder overview and a connected detail. Region states are weighted by their boundary "
-            "probabilities and combined, read out and projected, then added to the original query. "
-            "Training reuses the encoded map. Context-centered features provide both content and step size.")
-    s = txt(18,44,title,32,bold=True)
-    s += path(f"M18 61H{width-18}","#d9d9d9",1)
-    s += map_mobile(focus) if portrait else map_desktop(focus)
-    inset = opening(original) if frame==0 else training(original) if frame==4 else state_inset(frame,original)
-    stroke = RED if focus=="train" else EDGE if focus else "#d9d9d9"
-    s += rectangle(x-12,y-8,671,581,"white",stroke)
-    s += f'<g transform="translate({x} {y})">{inset}</g>'
-    if focus=="state":
-        s += txt(x+16,y+562,"States average reset row scans. Probabilities and state components are illustrative.",16,MUTED)
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img">'
-            f'<title>{title}</title><desc>{desc}</desc><defs>' + "".join(
-                f'<marker id="{key}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">'
-                f'<path d="M0 0L8 4L0 8Z" fill="{col}"/></marker>' for key,col in
-                [("flow",TEAL),("train",RED),("blue",DARK),("green",MOSS),("gray",MUTED)])
-            + f'</defs><rect width="{width}" height="{height}" fill="white"/><g font-family="Calibri">{s}</g></svg>')
-
-
-def render(page, cdp, markup):
+def render(page, markup):
     page.set_content('<style>*{margin:0}svg{display:block}</style>'+markup)
     page.evaluate("document.fonts.ready")
-    for element in page.locator("svg image").all():
-        element.evaluate("e=>new Promise((ok,bad)=>{const i=new Image();i.onload=ok;i.onerror=bad;i.src=e.getAttribute('href')})")
-    root = cdp.send("DOM.getDocument")["root"]["nodeId"]
-    for node in cdp.send("DOM.querySelectorAll", {"nodeId":root,"selector":"text"})["nodeIds"]:
-        used = cdp.send("CSS.getPlatformFontsForNode", {"nodeId":node})["fonts"]
-        if not used or any(f["familyName"]!="Calibri" for f in used):
-            raise RuntimeError(f"Export requires installed Calibri: {used}")
+    page.locator("svg image").evaluate(
+        "e=>new Promise((ok,bad)=>{const i=new Image();i.onload=ok;i.onerror=bad;i.src=e.getAttribute('href')})")
     return Image.open(BytesIO(page.screenshot())).convert("RGB")
 
 
-def save(browser, size, suffix, original):
-    w,h = size
-    page=browser.new_page(viewport={"width":w,"height":h},device_scale_factor=2)
-    cdp=page.context.new_cdp_session(page)
-    cdp.send("DOM.enable")
-    cdp.send("CSS.enable")
-    plates=[]
-    for frame in range(5):
-        plates.append(render(page,cdp,scene(size,frame,original)))
+def save(browser, size, suffix, photo):
+    w, h = size
+    page = browser.new_page(viewport={"width": w, "height": h}, device_scale_factor=2)
+    plates = []
+    for phase in range(6):
+        plate = render(page, scene(size, phase, photo))
+        plates.append(plate.resize(size, Image.Resampling.LANCZOS))
     page.close()
-    # Store a finished 2× typeset plate so the reduced-motion view uses exactly
-    # the same Calibri glyphs on devices that lack the installed font.
-    still=BytesIO()
-    plates[4].save(still,format="PNG",optimize=True)
-    data=b64encode(still.getvalue()).decode("ascii")
-    poster=(f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img">'
-            '<title>Boundary-State DETR with BCSA detail</title><desc>Candidate states are scaled by their '
-            'boundary probabilities and summed, then read out, projected and added to the existing query. '
-            'The auxiliary decoder uses adjusted features for both content and step size and predicts the same targets. '
-            'Inference runs the ordinary decoder once.</desc>'
-            f'<image width="{w}" height="{h}" href="data:image/png;base64,{data}"/></svg>\n')
-    (DEST/f"architecture-film{suffix}.svg").write_text(poster, encoding="utf-8")
-    plates=[p.resize(size,Image.Resampling.LANCZOS) for p in plates]
-    # Keep text crisp across scene boundaries. The map remains pinned.
-    durations=[3000,2050,2200,5000,7800]
-    sample=Image.new("RGB",(w,h*len(plates)),"white")
-    for index,plate in enumerate(plates):
-        sample.paste(plate,(0,index*h))
-    palette=sample.quantize(colors=256,method=Image.Quantize.MEDIANCUT)
-    converted=[im.quantize(palette=palette,dither=Image.Dither.NONE) for im in plates]
-    white=converted[0].getpixel((0,0))*3
-    colors=converted[0].getpalette()
-    colors[white:white+3]=[255,255,255]
-    for im in converted:
-        im.putpalette(colors)
-    converted[0].save(DEST/f"architecture-film{suffix}.gif",save_all=True,append_images=converted[1:],
-                      duration=durations,loop=0,disposal=1,optimize=False)
+    # Keep the reduced-motion poster in native vector form, with an embedded photograph.
+    stem = DEST / f"architecture-film{suffix}"
+    stem.with_suffix(".svg").write_text(scene(size, -1, photo), encoding="utf-8")
+    palette_source = Image.new("RGB", (w, h*len(plates)))
+    for n, plate in enumerate(plates):
+        palette_source.paste(plate, (0, n*h))
+    palette = palette_source.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
+    frames = [p.quantize(palette=palette, dither=Image.Dither.NONE) for p in plates]
+    white_index = frames[0].getpixel((0, 0)) * 3
+    colors = frames[0].getpalette()
+    colors[white_index:white_index+3] = [255, 255, 255]
+    for frame in frames:
+        frame.putpalette(colors)
+    frames[0].save(stem.with_suffix(".gif"), save_all=True, append_images=frames[1:],
+                   duration=[3000, 1000, 1300, 1000, 1300, 3300], loop=0, disposal=1, optimize=False)
 
 
 def main():
-    original=crop_data("bicycle")
+    photo = "data:image/jpeg;base64," + b64encode((ASSETS/"bicycle.jpg").read_bytes()).decode("ascii")
     DEST.mkdir(exist_ok=True)
     with sync_playwright() as p:
-        exe=os.environ.get("EVOLUTION_CHROMIUM")
-        browser=p.chromium.launch(executable_path=exe)
+        browser = p.chromium.launch(executable_path=os.environ.get("EVOLUTION_CHROMIUM"))
         try:
-            save(browser,DESKTOP,"",original)
-            save(browser,PORTRAIT,"-mobile",original)
+            save(browser, DESKTOP, "", photo)
+            save(browser, PORTRAIT, "-mobile", photo)
         finally:
             browser.close()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

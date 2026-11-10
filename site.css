@@ -71,6 +71,10 @@ tbody tr:last-child { border-bottom: 1.5px solid #777; }
 .ours { background: #edf6fc; color: #18374a; }
 .ours th, .ours td { font-weight: 650; }
 .table-caption, .detail-body p { color: #565656; font-size: .9rem; line-height: 1.6; }
+.crossing-rules :is(th, td) { text-align: left; white-space: normal; }
+.crossing-rules th:first-child { white-space: nowrap; }
+#transport-ablation .detail-body p { margin-top: .65em; }
+.state-equation { text-align: center; font: 1.25rem/1.65 Georgia, serif; }
 .chapter .table-caption { margin-top: 8px; }
 summary { width: fit-content; cursor: pointer; color: var(--link); padding: .35em 0; }
 .detail-body { margin-top: .6em; }

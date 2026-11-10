@@ -3,14 +3,16 @@
 [English](https://youn720lee.github.io/Boundary-State-DETR-site/) · [한국어](https://youn720lee.github.io/Boundary-State-DETR-site/ko.html)
 
 This public repository contains the bilingual project website, figures and animations.
-The architecture sequence follows one image through the backbone and encoder to
-BCSA, which refines each query using its boundary distribution. During training,
-an auxiliary decoder pass uses the same context-adjusted features for both the
-state content and its step size. Inference uses the original encoder features.
+Figures 1 and 2 start with the same COCO input photograph and follow the detector
+from bottom to top. The proposed model uses selective bidirectional boundary
+transport in the final decoder layer. Within each candidate interval, Mamba’s
+content-dependent transitions determine how much exterior state reaches the
+opposite edge. One query gate scales this contribution in both directions.
+The feature pyramid is computed once during training and inference.
 
-Model source is kept in the separate **private**
+The source link on the page leads to the earlier model in the private
 [`Boundary-State-DETR`](https://github.com/youn720lee/Boundary-State-DETR)
-repository. Access to that repository requires authorization.
+repository.
 
 ## Publishing
 

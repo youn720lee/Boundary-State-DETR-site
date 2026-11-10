@@ -9,6 +9,7 @@ Chromium-based browser, set EVOLUTION_CHROMIUM to the executable path.
 from base64 import b64encode
 from html import escape
 from io import BytesIO
+from functools import lru_cache
 import os
 from pathlib import Path
 import re
@@ -19,7 +20,7 @@ from playwright.sync_api import sync_playwright
 
 OUTPUT = Path(__file__).resolve().parents[1] / "assets" / "evolution"
 NAMES = ["D-FINE", "DEIM", "Boundary-State DETR"]
-DESCRIPTIONS = ["Box distribution refinement", "Improved query matching", "Boundary-conditioned query update"]
+DESCRIPTIONS = ["Refine the box edges", "Supervise more matches", "Filter incoming context"]
 AP = [54.0, 54.7, None]
 COLORS = ["#a6a6a6", "#4e95d9", "#156082"]
 INK, GRAY, TEAL, GREEN = "#141414", "#e8e8e8", "#0b76a0", "#d9f2d0"
@@ -47,75 +48,101 @@ def rectangle(x, y, w, h, fill, border="none", dashed=False):
             f'stroke="{border}" stroke-width="1.3"{extra}/>')
 
 
+@lru_cache(maxsize=1)
+def input_photo():
+    # The same unmarked COCO image feeds each detector. Embed it so that
+    # raster animation frames and stand-alone SVG plates have no external assets.
+    source = OUTPUT.parent / "bicycle.jpg"
+    image = b64encode(source.read_bytes()).decode("ascii")
+    return (f'<image x="56" y="351" width="116" height="77" '
+            f'href="data:image/jpeg;base64,{image}"/>')
+
+
 def architecture(i):
-    """Keep the shared forward path in the same place across all three columns."""
-    x = 149
+    """Show the common image-to-prediction path and each method's intervention."""
+    axis = 114
+
+    def node(top, text, fill=GRAY, width=184, dark=False):
+        return (rectangle(axis-width/2, top, width, 28, fill)
+                + label(axis, top+19, text, 16, 700 if dark else 500,
+                        "white" if dark else INK))
+
+    def up(start, end):
+        return path(f"M{axis} {start}V{end}", TEAL, marker="up")
+
     pieces = [
-        path("M149 294V277", TEAL, marker="up"),
-        path("M149 242V153", TEAL, marker="up"),
-        path("M149 124V103", TEAL, marker="up"),
-        path("M149 75V54", TEAL, marker="up"),
-        rectangle(60, 19, 178, 35, TEAL),
-        label(x, 42, "Class + box prediction", 15, 700, "white"),
-        rectangle(38, 75, 222, 28, GRAY),
-        label(x, 94, "Class head  /  FDR box head", 15),
-        rectangle(51, 124, 196, 29, GRAY),
-        label(x, 144, "Feed-forward network", 15),
-        rectangle(38, 242, 222, 35, GRAY),
-        label(x, 264, "Cross-attention + gateway", 15),
-        label(x, 309, "Query and encoder features F" if i==2 else "Query and image features", 14, 400, "#404040"),
+        label(149, 24, f"({chr(97+i)}) {NAMES[i]}", 22, 700),
+        label(149, 47, DESCRIPTIONS[i], 17, 400, "#424242"),
+        input_photo(),
+        label(axis, 446, "Input image", 16, 600),
+        up(351, 341),
+        node(311, "Backbone + encoder"),
+        up(311, 298),
+        node(268, "Earlier decoder layers"),
+        up(268, 252),
+        node(222, "Cross-attention + gate"),
+        up(116, 100),
+        node(70, "Class + box prediction", "#156082", 184, True),
+        node(116, "FFN + prediction heads"),
     ]
-    if i == 1:
+    if i == 0:
         pieces += [
-            path("M60 36H17V350H39", "#707070", 1.3, "4 3", "muted"),
-            rectangle(40, 328, 218, 45, "#f3f8fd", "#4e95d9", True),
-            label(x, 346, "Dense one-to-one matching", 15, 700, "#22577a"),
-            label(x, 364, "Matchability-Aware Loss", 14),
+            up(222, 146),
+            path("M207 130H248V151", "#626262", 1.3, "", "muted"),
         ]
-    if i == 2:
+        for n, h in enumerate((3, 7, 16, 26, 19, 8, 4)):
+            pieces.append(rectangle(218 + n*9, 185-h, 7, h, "#6093af"))
         pieces += [
-            # The green block interrupts the blue query path between CA and FFN.
-            rectangle(34, 174, 230, 48, GREEN, "#a6ca96"),
-            label(x, 194, "BCSA query update", 16, 700, "#274725"),
-            label(x, 212, "Weight region states by probability", 13, 500),
-            path("M149 241V223", TEAL, marker="up"),
-            rectangle(40, 328, 218, 45, "#f3f8fd", "#4e95d9"),
-            label(x, 346, "Boundary probabilities", 15, 700, "#22577a"),
-            label(x, 364, "Four sides from the previous layer", 13),
-            path("M40 350H15V198H32", TEAL, marker="up"),
+            path("M214 185H282", "#525252", 1),
+            label(248, 206, "FDR box", 15, 600),
+            label(248, 223, "distribution", 15),
         ]
-    pieces += [
-        label(x, 404, f"({chr(97+i)}) {NAMES[i]}", 20, 700, BLACK),
-        label(x, 430, DESCRIPTIONS[i], 15, 400, "#454545"),
-    ]
+    elif i == 1:
+        # Training supervision connects to predictions, never to the image stem.
+        pieces += [
+            up(222, 146),
+            path("M207 84H251V151", "#707070", 1.5, "4 3", "muted"),
+            rectangle(181, 155, 113, 62, "#f3f8fd", "#8ca9be", True),
+            label(237.5, 172, "Training", 14, 600),
+            label(237.5, 191, "Dense one-to-one", 14, 700),
+            label(237.5, 207, "matching", 15, 700),
+        ]
+    else:
+        # Previous FDR predictions define candidate intervals at this decoder layer.
+        pieces += [
+            up(222, 208), up(159, 146),
+            rectangle(18, 160, 192, 46, "#e1efd9", "#528248"),
+            label(axis, 180, "Boundary transport", 17, 700),
+            label(axis, 197, "Selective Mamba", 15),
+            path("M207 282H288V183H213", "#536b59", 1.5, "", "state"),
+            label(245, 231, "Box-edge", 15),
+            label(245, 249, "distributions", 15),
+        ]
     return "".join(pieces)
 
 
 def chart(stage):
-    x0, x1, y0, y1 = 48, 410, 339, 65
-    xs = [111, 228, 345]
+    x0, x1, y0, y1 = 43, 410, 350, 76
+    xs = [105, 221, 343]
     def to_y(value):
         return round(y0 - (y0-y1)*(value-50)/6, 2)
     items = [
-        label(229, 31, "COCO val2017 · L models", 18, 650),
-        label(20, 48, "AP", 13, 600),
+        label(225, 24, "(d) Box AP", 22, 700),
+        label(225, 47, "COCO val2017 · L models", 17, 400, "#424242"),
     ]
     for value in range(50, 57):
         y = to_y(value)
         items += [path(f"M{x0} {y}H{x1}", RULE, 1.1),
-                  label(x0-10, y+5, str(value), 14, 400, "#575757", "end")]
+                  label(x0-9, y+5, str(value), 15, 400, "#545454", "end")]
     for i in range(stage):
         if AP[i] is None:
-            items.append(label(xs[i], y0-13, "Pending", 16, 600, "#444444"))
+            # Place the status beneath the method name, outside the AP scale.
+            items.append(label(xs[i], 414, "AP pending", 15, 600, "#545454"))
         else:
             y = to_y(AP[i])
-            items += [rectangle(xs[i]-28, y, 56, y0-y, COLORS[i]),
-                      label(xs[i], y+25, f"{AP[i]:.1f}", 20, 700, "white")]
-        items += [label(xs[i], 359, f"({chr(97+i)})", 15, 600),
-                  label(xs[i], 378, NAMES[i], 14, 500)]
-    items += [label(229, 403, "(d) Box AP ↑", 20, 700, BLACK),
-              label(229, 424, "AP axis shown from 50 to 56", 13, 400, "#5b5b5b"),
-              label(218, 444, "D-FINE and DEIM report the two reference scores.", 13, 500, "#404040")]
+            items += [rectangle(xs[i]-24, y, 48, y0-y, COLORS[i]),
+                      label(xs[i], y-9, f"{AP[i]:.1f}", 19, 700)]
+        items += [label(xs[i], 376, NAMES[i], 15, 700)]
     return "".join(items)
 
 
@@ -123,7 +150,7 @@ def svg(width, height, title, contents):
     markers = "".join(
         f'<marker id="{name}" viewBox="0 0 8 8" refX="6.8" refY="4" '
         f'markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="{color}"/></marker>'
-        for name,color in [("up",TEAL),("muted","#707070"),("edit",RED)]
+        for name,color in [("up",TEAL),("muted","#707070"),("edit",RED),("state","#536b59")]
     )
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
             f'viewBox="0 0 {width} {height}" role="img" aria-label="{escape(title)}">'
@@ -136,7 +163,7 @@ def save_plate(page, cdp, filename, width, title, content):
     """Bake one typeset Calibri layer so devices without the font display it too."""
     drawing = svg(width, PLATE_H, title, content)
     page.set_viewport_size({"width": width, "height": PLATE_H})
-    page.set_content('<style>*{margin:0;padding:0}svg{display:block}svg path,svg rect{visibility:hidden}</style>' + drawing)
+    page.set_content('<style>*{margin:0;padding:0}svg{display:block}svg path,svg rect,svg image{visibility:hidden}</style>' + drawing)
     page.evaluate("document.fonts.ready")
     root = cdp.send("DOM.getDocument")["root"]["nodeId"]
     labels = cdp.send("DOM.querySelectorAll", {"nodeId": root, "selector": "text"})["nodeIds"]
@@ -172,7 +199,7 @@ def render_vectors(browser):
                        for j in range(stage))
         rule=path("M916 12V437", "#858585", 1.5, "7 7")
         full=panels+rule+f'<g transform="translate(927 0)">{summary}</g>'
-        save_plate(page, cdp, f"stage-{stage}.svg", PLATE_W, "Decoder comparison and COCO box AP", full)
+        save_plate(page, cdp, f"stage-{stage}.svg", PLATE_W, "Three detectors from input image to prediction and COCO box AP", full)
     page.close()
 
 
