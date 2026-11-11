@@ -1,101 +1,96 @@
-<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#ffffff"><meta name="description" content="Boundary-State DETR는 후보 박스 안의 영상 특징으로 주변 문맥이 검출 쿼리까지 얼마나 전달될지 정한다."><title>Boundary-State DETR: 후보 박스를 가로지르는 문맥의 선택적 전달</title><link rel="alternate" hreflang="ko" href="ko.html"><link rel="alternate" hreflang="en" href="index.html"><link rel="icon" type="image/svg+xml" href="assets/mark.svg"><link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="site.css?v=paper-title"><link rel="stylesheet" href="hero.css?v=transport-v2"><link rel="stylesheet" href="evolution.css?v=figure-1-1"><script defer src="evolution.js?v=autoplay"></script><script defer src="hero.js?v=transport-v2"></script><link rel="stylesheet" href="method-motion.css?v=transport-v2"><script defer src="architecture-film.js?v=transport-v2"></script></head>
-<body id="top"><a href="#main" class="skip">연구 내용으로 건너뛰기</a>
-<nav class="language" aria-label="언어"><a lang="en" href="index.html">English</a><span class="divider">/</span><span aria-current="page">한국어</span></nav>
-<main id="main"><header class="mast"><h1>Boundary-State DETR: 후보 박스를 가로지르는 문맥의 선택적 전달</h1><div class="byline"><p class="authors">이윤관, 고주은</p><p class="affiliation">삼성전자 생산기술연구소</p></div><nav class="buttons" aria-label="연구 자료"><a href="https://github.com/youn720lee/Boundary-state-DETR">이전 모델 코드</a><a href="#evolution"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 3h5l2 1 2-1h5v11h-5l-2 1-2-1H2zM9 4v11"/></svg>방법 비교</a><a href="#architecture">모델 구조</a><a href="#results"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2v12h14M5.5 11V8M9 11V5M12.5 11V3"/></svg>실험 결과</a></nav></header>
-<section class="teaser" aria-labelledby="teaser-title"><h2 id="teaser-title" class="teaser-heading">후보 박스 안을 지나면 주변 정보가 얼마나 남을까?</h2>
-<div class="example-controls" hidden role="group" aria-label="COCO 이미지 선택"><button type="button" data-previous aria-controls="boundary-viewer">‹ 이전</button><output aria-live="polite" aria-atomic="true">1 / 3　자전거</output><button type="button" data-next aria-controls="boundary-viewer">다음 ›</button></div>
-<div id="boundary-viewer" role="region" aria-label="COCO 이미지 선택">
+<!DOCTYPE html>
+
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#ffffff" name="theme-color"/><meta content="LWR은 경계 후보 위치에서 stride-8 Mamba 상태 특징을 읽어 박스 경계 분포를 보정합니다." name="description"/><title>Look Where You Regress: Candidate-Aligned Features for Object Detection</title><link href="ko.html" hreflang="ko" rel="alternate"/><link href="index.html" hreflang="en" rel="alternate"/><link href="assets/mark.svg?v=evidence-v2-20261111" rel="icon" type="image/svg+xml"/><link href="fonts.css?v=evidence-v2-20261111" rel="stylesheet"/><link href="site.css?v=evidence-v2-20261111" rel="stylesheet"/><link href="hero.css?v=evidence-v2-20261111" rel="stylesheet"/><link href="evolution.css?v=evidence-v2-20261111" rel="stylesheet"/><script defer="" src="evolution.js?v=evidence-v2-20261111"></script><script defer="" src="hero.js?v=evidence-v2-20261111"></script><link href="method-motion.css?v=evidence-v2-20261111" rel="stylesheet"/><script defer="" src="architecture-film.js?v=evidence-v2-20261111"></script><meta content="Look Where You Regress: Candidate-Aligned Features for Object Detection" property="og:title"/><meta content="LWR은 경계 후보 위치에서 stride-8 Mamba 상태 특징을 읽어 박스 경계 분포를 보정합니다." property="og:description"/><meta content="website" property="og:type"/></head>
+<body id="top"><a class="skip" href="#main">연구 내용으로 건너뛰기</a>
+<nav aria-label="언어" class="language"><a href="index.html" lang="en">English</a><span class="divider">/</span><span aria-current="page">한국어</span></nav>
+<main id="main">
+<header class="mast"><h1>Look Where You Regress: Candidate-Aligned Features for Object Detection</h1><div class="byline"><p class="authors">이윤관, 고주은</p><p class="affiliation">삼성전자 생산기술연구소</p></div>
+<nav aria-label="연구 자료" class="buttons"><a href="https://github.com/youn720lee/tfdet/tree/dqm/platform/vfm_v3_detr">코드</a><a href="#evolution"><svg aria-hidden="true" viewbox="0 0 18 18"><path d="M2 3h5l2 1 2-1h5v11h-5l-2 1-2-1H2zM9 4v11"></path></svg>방법 비교</a><a href="#architecture">모델 구조</a><a href="#results"><svg aria-hidden="true" viewbox="0 0 18 18"><path d="M2 2v12h14M5.5 11V8M9 11V5M12.5 11V3"></path></svg>실험 결과</a></nav></header>
+<section aria-labelledby="teaser-title" class="teaser"><h2 class="teaser-heading" id="teaser-title">경계 후보에 점수를 매기는 위치에서 영상 근거를 읽습니다.</h2>
+<div aria-label="COCO 이미지 선택" class="example-controls" hidden="" role="group"><button aria-controls="boundary-viewer" data-previous="" type="button">‹ 이전</button><output aria-atomic="true" aria-live="polite">1 / 3　자전거</output><button aria-controls="boundary-viewer" data-next="" type="button">다음 ›</button></div>
+<div aria-label="COCO 이미지 선택" id="boundary-viewer" role="region">
 <div class="example-panels" data-example="자전거">
-<figure class="scene"><div class="scene-image"><img src="assets/examples/bicycle-scene.webp" alt="가게 앞에 세운 자전거" width="417" height="282"></div><figcaption><strong>입력 이미지</strong><span>인코더가 자전거와 뒤편 가게를 함께 특징 맵에 담는다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img src="assets/examples/bicycle-interval.svg" alt="자전거에 그린 예시 박스와 가로 점선이 좌우 경계에서 만난다." width="417" height="282"></div><figcaption><strong>후보 박스의 한 구간</strong><span>점선은 한 행에서 박스의 양쪽 경계 L과 R을 잇는다. 각 방향의 스캔은 바깥에서 쌓은 상태를 이 구간으로 가져온다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img src="assets/examples/bicycle-crossing.svg" alt="자전거 사진에서 고른 행을 확대한 도식. 양쪽에서 들어온 상태에 각각 구간의 투과율 T를 곱한다." width="417" height="282"></div><figcaption><strong>Mamba 상태의 전달</strong><span>구간 안의 특징이 투과율 T를 결정한다. 쿼리 게이트는 반대편 경계까지 도달한 바깥 상태를 얼마나 받아들일지 정한다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="검출기에 입력하는 COCO 사진." height="282" src="assets/examples/bicycle-scene.webp" width="417"/></div><figcaption><strong>입력 이미지</strong><span>한 번의 백본·인코더 연산으로 검출에 사용할 특징을 만듭니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" src="assets/examples/bicycle-candidates.svg?v=evidence-v2-20261111" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>첫 박스 예측을 기준으로 각 변의 세 표본선에 candidate offset을 놓습니다. 한 변의 후보를 설명하기 위한 도식입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="후보 위치의 특징 관측을 공유 점수 헤드로 전달하는 도식." height="282" src="assets/examples/bicycle-evidence.svg?v=evidence-v2-20261111" width="417"/></div><figcaption><strong>후보별 영상 근거</strong><span>쿼리 유사도, first-hit 정보, 후보 양옆의 국소 특징으로 각 후보의 점수를 보정합니다.</span></figcaption></figure>
 </div>
 <div class="example-panels" data-example="비행기">
-<figure class="scene"><div class="scene-image"><img src="assets/examples/airplane-scene.webp" alt="맑은 하늘을 나는 비행기" width="417" height="282" loading="lazy"></div><figcaption><strong>입력 이미지</strong><span>인코더가 비행기와 하늘을 함께 특징 맵에 담는다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img src="assets/examples/airplane-interval.svg" alt="비행기에 그린 예시 박스와 가로 점선이 좌우 경계에서 만난다." width="417" height="282" loading="lazy"></div><figcaption><strong>후보 박스의 한 구간</strong><span>점선은 한 행에서 박스의 양쪽 경계 L과 R을 잇는다. 각 방향의 스캔은 바깥에서 쌓은 상태를 이 구간으로 가져온다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img src="assets/examples/airplane-crossing.svg" alt="비행기 사진에서 고른 행을 확대한 도식. 양쪽에서 들어온 상태에 각각 구간의 투과율 T를 곱한다." width="417" height="282" loading="lazy"></div><figcaption><strong>Mamba 상태의 전달</strong><span>구간 안의 특징이 투과율 T를 결정한다. 쿼리 게이트는 반대편 경계까지 도달한 바깥 상태를 얼마나 받아들일지 정한다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="검출기에 입력하는 COCO 사진." height="282" loading="lazy" src="assets/examples/airplane-scene.webp" width="417"/></div><figcaption><strong>입력 이미지</strong><span>한 번의 백본·인코더 연산으로 검출에 사용할 특징을 만듭니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" loading="lazy" src="assets/examples/airplane-candidates.svg?v=evidence-v2-20261111" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>첫 박스 예측을 기준으로 각 변의 세 표본선에 candidate offset을 놓습니다. 한 변의 후보를 설명하기 위한 도식입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="후보 위치의 특징 관측을 공유 점수 헤드로 전달하는 도식." height="282" loading="lazy" src="assets/examples/airplane-evidence.svg?v=evidence-v2-20261111" width="417"/></div><figcaption><strong>후보별 영상 근거</strong><span>쿼리 유사도, first-hit 정보, 후보 양옆의 국소 특징으로 각 후보의 점수를 보정합니다.</span></figcaption></figure>
 </div>
 <div class="example-panels" data-example="얼룩말">
-<figure class="scene"><div class="scene-image"><img src="assets/examples/zebra-scene.webp" alt="나무 앞에서 풀을 뜯는 얼룩말" width="417" height="282" loading="lazy"></div><figcaption><strong>입력 이미지</strong><span>인코더가 얼룩말과 주변의 풀, 나무를 함께 특징 맵에 담는다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img src="assets/examples/zebra-interval.svg" alt="얼룩말에 그린 예시 박스와 가로 점선이 좌우 경계에서 만난다." width="417" height="282" loading="lazy"></div><figcaption><strong>후보 박스의 한 구간</strong><span>점선은 한 행에서 박스의 양쪽 경계 L과 R을 잇는다. 각 방향의 스캔은 바깥에서 쌓은 상태를 이 구간으로 가져온다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img src="assets/examples/zebra-crossing.svg" alt="얼룩말 사진에서 고른 행을 확대한 도식. 양쪽에서 들어온 상태에 각각 구간의 투과율 T를 곱한다." width="417" height="282" loading="lazy"></div><figcaption><strong>Mamba 상태의 전달</strong><span>구간 안의 특징이 투과율 T를 결정한다. 쿼리 게이트는 반대편 경계까지 도달한 바깥 상태를 얼마나 받아들일지 정한다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="검출기에 입력하는 COCO 사진." height="282" loading="lazy" src="assets/examples/zebra-scene.webp" width="417"/></div><figcaption><strong>입력 이미지</strong><span>한 번의 백본·인코더 연산으로 검출에 사용할 특징을 만듭니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" loading="lazy" src="assets/examples/zebra-candidates.svg?v=evidence-v2-20261111" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>첫 박스 예측을 기준으로 각 변의 세 표본선에 candidate offset을 놓습니다. 한 변의 후보를 설명하기 위한 도식입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="후보 위치의 특징 관측을 공유 점수 헤드로 전달하는 도식." height="282" loading="lazy" src="assets/examples/zebra-evidence.svg?v=evidence-v2-20261111" width="417"/></div><figcaption><strong>후보별 영상 근거</strong><span>쿼리 유사도, first-hit 정보, 후보 양옆의 국소 특징으로 각 후보의 점수를 보정합니다.</span></figcaption></figure>
 </div>
 </div>
-<div class="stage-controls" hidden role="group" aria-label="설명 단계 선택"><button type="button" data-stage="0" aria-pressed="true">이미지</button><button type="button" data-stage="1" aria-pressed="false">구간</button><button type="button" data-stage="2" aria-pressed="false">상태 전달</button></div>
+<div aria-label="설명 단계 선택" class="stage-controls" hidden="" role="group"><button aria-pressed="true" data-stage="0" type="button">입력 이미지</button><button aria-pressed="false" data-stage="1" type="button">경계 후보 위치</button><button aria-pressed="false" data-stage="2" type="button">후보별 영상 근거</button></div>
 </section>
 <div class="content-column">
-<section id="abstract" class="chapter"><h2>초록</h2><div class="abstract-copy"><p>후보 박스 바로 바깥의 특징은 일부가 가려진 물체를 알아보는 단서가 될 수도 있고, 이웃한 다른 물체의 일부일 수도 있다. 검출기는 이 특징을 예측에 얼마나 반영해야 할까? Boundary-State DETR는 후보 박스 안의 특징으로 주변 문맥을 검출 쿼리에 얼마나 전달할지 정한다.</p>
-<p>마지막 디코더 층에서 Mamba는 인코딩된 특징 맵의 각 행을 왼쪽과 오른쪽에서 각각 훑는다. 박스 경계에 들어설 때의 상태에는 그 지점까지 읽은 바깥 문맥이 담겨 있다. 박스 안을 지날 때는 각 위치의 특징이 이 문맥을 얼마나 남길지 정하면서 그 위치의 단서도 상태에 더한다. 쿼리 게이트는 남은 문맥의 비중을 조절하고, 디코더는 이를 박스 안에서 모은 단서와 합친다. 따라서 폭이 같은 두 박스에 같은 문맥이 들어오고 게이트 값까지 같아도, 박스 안의 특징에 따라 전달되는 문맥의 양은 달라질 수 있다.</p>
-<p>디코더는 각 후보의 상태에 해당 경계의 예측 확률을 가중치로 곱하고, 그 합을 교차 어텐션을 거친 쿼리에 더한다. 검출기는 영상 한 장을 한 번만 인코딩하고, 모든 쿼리가 구간별 계산 결과를 공유한다.</p></div></section>
+<section class="chapter" id="abstract"><h2>초록</h2><div class="abstract-copy"><p>분포 기반 DETR은 각 박스 변의 candidate offset에 점수를 매겨 경계를 보정한다. 이 점수는 쿼리가 attention으로 모은 특징에서 계산하지만, attention의 관측 위치가 각 경계 후보의 위치에 직접 대응하도록 정해져 있지는 않다. 특히 가까운 객체들이 서로 경쟁하는 단서를 제공할 때, 개별 후보를 선택하는 영상 근거가 쿼리 안에 간접적으로 담긴다. Look Where You Regress(LWR)는 각 경계 후보에 해당하는 영상 위치에서 특징을 읽어 후보 점수를 보정한다.</p>
+<p>Mamba식 선택적 상태 공간 연산은 stride-8 해상도를 유지하면서 행과 열을 양방향으로 훑어 문맥을 집계한다. 이렇게 만든 상태 특징을 모든 쿼리가 공유한다. 각 후보에서는 쿼리와의 직접 유사도, 중심에서 바깥쪽으로 정렬한 후보들의 first-hit 분포와 별도의 no-hit 신호, 후보 양옆의 국소 특징을 관측한다. 작은 공유 헤드는 이 세 단서를 첫 디코더 층의 분포 logit 보정값으로 바꾼다. 보정 헤드는 출력이 0이 되도록 초기화하며, 후속 층의 경계 정제와 자체 증류는 보정된 분포를 이어받는다.</p>
+<p>학습에서는 이웃 객체와 혼동하기 쉬운 박스를 denoising query로 만들어 제시한다. 기존 검출 손실과 표준 이미지 증강은 유지한다. 한 번 인코딩한 이미지에서 모든 경계 근거를 계산하고 외부 교사를 사용하지 않으며, 분포 기반 회귀가 점수를 매기는 위치와 실제 특징을 관측하는 위치를 연결한다.</p></div></section>
 <div class="research-notes">
-<details id="motivation"><summary>연구 동기와 목표</summary>
-<p>경계에서 상태를 초기화하면 주변에서 얻은 단서도 사라진다. 반대로 바깥 상태를 그대로 넘기면 박스 안에 어떤 특징이 있든 같은 비율로 통과한다. 우리는 두 경계 사이의 영상 특징으로 주변 문맥의 전달량을 정할 수 있는지 살펴본다.</p></details>
-<details id="highlights"><summary>핵심 기여</summary>
-<ul><li><strong>박스 내부 특징에 따른 투과율.</strong> Mamba가 박스 안의 각 셀에서 구한 유지율을 곱하면 바깥 상태가 반대쪽 경계에 얼마나 남는지 알 수 있다.</li>
-<li><strong>검출 쿼리 갱신.</strong> 쿼리 게이트가 양쪽에서 전달된 상태의 반영량을 정한다. 디코더는 두 방향에서 읽은 결과를 후보 경계의 확률에 따라 합치고 쿼리 차원으로 투영한다.</li>
-<li><strong>통과 규칙 비교.</strong> 세 모델은 내부 상태 계산, 쿼리 게이트, 증강 일정과 검출 손실을 공유한다. 비교에서 달라지는 것은 바깥 상태가 박스를 통과하는 규칙이다.</li></ul></details>
+<details id="motivation"><summary>연구 동기와 목표</summary><p>박스 헤드는 경계 후보가 놓인 위치의 특징을 직접 관측하지 않고도 그 후보에 점수를 매길 수 있다. 가까이 있는 객체가 비슷한 단서를 보이면 어느 객체의 경계인지 구분하기가 더 어려워진다. 우리는 기존의 반복적 박스 정제를 유지하면서, 각 회귀 후보가 자신의 위치에서 얻은 영상 근거를 사용하도록 만드는 것을 목표로 한다.</p></details>
+<details id="highlights"><summary>핵심 기여</summary><ul><li><strong>경계 후보에 대응하는 특징 관측.</strong> 기존 candidate offset이 가리키는 위치에서 쿼리 유사도, first-hit 정보, 후보 안팎의 국소 특징을 읽어 점수의 근거로 사용한다.</li><li><strong>공유하는 Mamba 상태 특징.</strong> stride-8 해상도에서 행과 열의 문맥을 선택적으로 집계한다. 모든 쿼리가 같은 특징 맵을 관측하므로 각 후보는 국소 특징과 주변 문맥을 함께 활용한다.</li><li><strong>첫 층 보정을 후속 정제로 연결.</strong> 첫 디코더 층의 분포 logit을 한 번 보정하고 후속 FDR 층과 자체 증류가 이를 이어받는다. 학습에서는 이웃 객체와 혼동하기 쉬운 DN 쿼리 박스를 함께 제시한다.</li></ul></details>
 </div>
-<section class="chapter evolution" id="evolution" aria-labelledby="evolution-title">
+<section aria-labelledby="evolution-title" class="chapter evolution" id="evolution">
 <h2 id="evolution-title">Advancing DETR Object Detection</h2>
 <figure>
-<div class="ev-wide"><div class="ev-stack" id="ev-frames" role="img" aria-label="세 검출기 모두 그림 맨 아래의 같은 COCO 사진에서 시작한다. D-FINE은 박스 경계 분포를 보정하고, DEIM은 학습 시 매칭 방식을 바꾸며, 제안 모델은 쿼리를 갱신할 때 바깥 상태의 전달량을 조절한다. COCO 박스 AP는 D-FINE-L 54.0, DEIM-L 54.7이며 제안 모델 L은 측정 전이다.">
-<div class="ev-frame" data-frame="1"><img src="assets/evolution/stage-1.svg?v=transport-v2" alt="" width="1350" height="450" loading="lazy"></div>
-<div class="ev-frame" data-frame="2"><img src="assets/evolution/stage-2.svg?v=transport-v2" alt="" width="1350" height="450" loading="lazy"></div>
-<div class="ev-frame ev-current" data-frame="3"><img src="assets/evolution/stage-3.svg?v=transport-v2" alt="" width="1350" height="450" loading="lazy"></div>
+<div class="ev-wide"><div aria-label="D-FINE은 박스 분포를 정제하고 DEIM은 학습 중 매칭을 개선한다. LWR은 경계 후보 위치의 특징으로 첫 층 분포 logit을 보정한다. D-FINE-L과 DEIM-L의 공개 AP는 54.0과 54.7이며 새 모델은 측정 전이다." class="ev-stack" id="ev-frames" role="img">
+<div class="ev-frame" data-frame="1"><img alt="" height="510" loading="lazy" src="assets/evolution/stage-1.svg?v=evidence-v2-20261111" width="1480"/></div>
+<div class="ev-frame" data-frame="2"><img alt="" height="510" loading="lazy" src="assets/evolution/stage-2.svg?v=evidence-v2-20261111" width="1480"/></div>
+<div class="ev-frame ev-current" data-frame="3"><img alt="" height="510" loading="lazy" src="assets/evolution/stage-3.svg?v=evidence-v2-20261111" width="1480"/></div>
 </div>
 <div class="ev-small">
 <p class="ev-hint">좌우로 넘겨 세 검출기 비교</p>
-<div class="ev-methods" role="region" tabindex="0" aria-label="가로로 넘겨 비교하는 검출기 구조도">
-  <img src="assets/evolution/diagram-1.svg?v=transport-v2" alt="D-FINE 검출기" loading="lazy" width="298" height="450">
-  <img src="assets/evolution/diagram-2.svg?v=transport-v2" alt="DEIM 검출기" loading="lazy" width="298" height="450">
-  <img src="assets/evolution/diagram-3.svg?v=transport-v2" alt="Boundary-State DETR 검출기" loading="lazy" width="298" height="450">
+<div aria-label="가로로 넘겨 비교하는 검출기 구조도" class="ev-methods" role="region" tabindex="0">
+<img alt="D-FINE 검출기" height="510" loading="lazy" src="assets/evolution/diagram-1.svg?v=evidence-v2-20261111" width="350"/>
+<img alt="DEIM 검출기" height="510" loading="lazy" src="assets/evolution/diagram-2.svg?v=evidence-v2-20261111" width="350"/>
+<img alt="LWR 검출기" height="510" loading="lazy" src="assets/evolution/diagram-3.svg?v=evidence-v2-20261111" width="350"/>
 </div>
-<img class="ev-chart" src="assets/evolution/ap-3.svg?v=transport-v2" loading="lazy" width="423" height="450" alt="COCO val2017 박스 AP. D-FINE 54.0, DEIM 54.7, 제안 모델 selective는 측정 전.">
+<img alt="COCO val2017 박스 AP. D-FINE 54.0, DEIM 54.7, LWR은 측정 전." class="ev-chart" height="510" loading="lazy" src="assets/evolution/ap-3.svg?v=evidence-v2-20261111" width="400"/>
 </div></div>
-<figcaption class="caption ev-caption"><strong>그림 1. 검출기에서 각 방법이 바꾸는 부분.</strong> (a) D-FINE은 디코더 층을 지날 때마다 박스의 네 경계 분포를 보정한다. (b) DEIM은 이 검출기를 학습할 때 일대일 매칭 수를 늘리고 매칭 품질을 손실에 반영한다. (c) Boundary-State DETR는 직전 층의 경계 분포로 어느 구간의 상태를 얼마나 읽을지 정한다. 각 구간 안의 영상 특징은 그곳을 지나 쿼리에 전달될 바깥 문맥의 양을 조절한다. (d)는 L 모델의 COCO val2017 박스 AP다.</figcaption>
+<figcaption class="caption ev-caption"><strong>Figure 1. 회귀 후보와 영상 근거의 연결.</strong> (a) D-FINE은 디코더 층을 거치며 박스 경계 분포를 정제한다. (b) DEIM은 dense one-to-one matching과 매칭 품질을 반영한 감독으로 학습을 개선한다. (c) LWR은 이 구성들을 유지하고 candidate offset 위치에서 공유 Mamba 상태 특징을 읽는다. 여기서 얻은 근거로 첫 층 분포 logit을 보정한 뒤 후속 층의 정제를 수행한다. (d) L 모델의 COCO val2017 박스 AP. 새 모델은 평가 전이다.</figcaption>
 </figure>
-<details id="figure-1-1" class="ev-extension">
-<summary>그림 1-1. RT-DETRv4와 Boundary-State DETR는 어디가 다를까?</summary>
+<details class="ev-extension" id="figure-1-1">
+<summary>Figure 1-1. RT-DETRv4와 LWR의 차이</summary>
 <figure>
-<div class="ev-comparison" role="region" tabindex="0" aria-label="D-FINE부터 Boundary-State DETR까지 네 검출기의 구조도">
-<div><img src="assets/evolution/diagram-1.svg" width="298" height="450" loading="lazy" alt="(a) D-FINE은 박스 경계 분포를 보정한다."><p class="ev-score">54.0 <span>박스 AP</span></p></div>
-<div><img src="assets/evolution/diagram-2.svg" width="298" height="450" loading="lazy" alt="(b) DEIM은 학습 중 일대일 매칭 수를 늘린다."><p class="ev-score">54.7 <span>박스 AP</span></p></div>
-<div><img src="assets/evolution/rtv4-panel.svg" width="298" height="450" loading="lazy" alt="(c) RT-DETRv4는 학습할 때 깊은 인코더 특징을 DINOv3 교사 특징에 맞춘다. 추론 때는 검출기만 쓴다."><p class="ev-score">55.4 <span>박스 AP</span></p></div>
-<div><img src="assets/evolution/selective-panel.svg" width="298" height="450" loading="lazy" alt="(d) Boundary-State DETR는 마지막 교차 어텐션과 FFN 사이에서 Mamba로 바깥 문맥의 전달량을 정한다."><p class="ev-score">AP 측정 전</p></div>
+<div aria-label="D-FINE, DEIM, RT-DETRv4, LWR" class="ev-comparison" role="region" tabindex="0">
+<div><img alt="(a) D-FINE은 박스 경계 분포를 보정한다." height="510" loading="lazy" src="assets/evolution/diagram-1.svg?v=evidence-v2-20261111" width="350"/><p class="ev-score">54.0 <span>박스 AP</span></p></div>
+<div><img alt="(b) DEIM은 학습 중 일대일 매칭 수를 늘린다." height="510" loading="lazy" src="assets/evolution/diagram-2.svg?v=evidence-v2-20261111" width="350"/><p class="ev-score">54.7 <span>박스 AP</span></p></div>
+<div><img alt="(c) RT-DETRv4는 학습할 때 깊은 인코더 특징을 DINOv3 교사 특징에 맞춘다. 추론 때는 검출기만 쓴다." height="510" loading="lazy" src="assets/evolution/rtv4-panel.svg?v=evidence-v2-20261111" width="350"/><p class="ev-score">55.4 <span>박스 AP</span></p></div>
+<div><img alt="이미지 한 장이 백본과 인코더, 디코더를 통과한다. stride-8 상태 특징에서 경계 후보의 세 단서를 읽어 첫 층 분포 logit을 한 번 보정한다. 후속 층은 이 분포를 정제한다. 이웃 DN은 학습 시 쿼리 박스에만 적용한다." height="510" loading="lazy" src="assets/evolution/selective-panel.svg?v=evidence-v2-20261111" width="350"/><p class="ev-score">AP 측정 전</p></div>
 </div>
-<figcaption class="caption"><strong>그림 1-1. 인코더를 지도하는 방법과 디코더 쿼리를 갱신하는 방법.</strong> (c) RT-DETRv4는 학습할 때 DSI로 인코더의 깊은 층에서 얻은 특징을 DINOv3 교사 특징에 맞춘다. GAM은 그래디언트 크기에 따라 증류 손실의 가중치를 조절한다. 추론 때는 검출기만 실행한다. (d) 제안 모델은 마지막 교차 어텐션 뒤에서 후보 박스 안의 특징을 읽어, 바깥 문맥을 쿼리에 얼마나 더할지 정한다. 외부 교사 없이 학습하며 추론 때도 같은 연산을 쓴다. 패널 아래 수치는 L 모델의 COCO val2017 박스 AP다. <a href="https://arxiv.org/abs/2510.25257">RT-DETRv4 논문</a></figcaption>
+<figcaption class="caption"><strong>Figure 1-1. 인코더 감독과 후보 위치의 영상 근거.</strong> RT-DETRv4는 DINOv3 교사를 사용한다. DSI는 인코더 특징을 정렬하고 GAM은 증류 가중치를 조절한다. LWR은 외부 교사를 사용하지 않는 host에 추론 시에도 동작하는 경계 근거 헤드를 추가한다. FDR, dense one-to-one matching, 기존 자체 증류는 유지하며 DINOv3·DSI·GAM은 사용하지 않는다. <a href="https://arxiv.org/abs/2510.25257">RT-DETRv4 논문</a>.</figcaption>
 </figure>
 </details>
 </section>
-<section class="chapter" id="architecture" aria-labelledby="architecture-title"><h2 id="architecture-title">Boundary-State DETR</h2>
+<section aria-labelledby="architecture-title" class="chapter" id="architecture"><h2 id="architecture-title">Look Where You Regress</h2>
 <figure class="architecture-film" id="architecture-film">
-<div class="mm-stage"><picture><source media="(max-width: 650px)" srcset="assets/contributions/architecture-film-mobile.svg?v=transport-v2" data-animation="assets/contributions/architecture-film-mobile.gif?v=transport-v2" width="620" height="1280"><img src="assets/contributions/architecture-film.svg?v=transport-v2" data-animation="assets/contributions/architecture-film.gif?v=transport-v2" width="1080" height="660" loading="lazy" alt="맨 아래의 사진이 백본과 인코더를 한 번 지난다. 확대도는 좌우에서 들어온 바깥 상태가 후보 구간을 지나 마지막 디코더 쿼리에 더해지는 과정을 보여 준다."></picture></div>
-<figcaption class="caption"><strong>그림 2. 마지막 디코더 층에서 바깥 상태가 전달되는 과정.</strong> 맨 아래 사진에서 시작해 백본과 인코더를 거쳐 디코더로 올라간다. Cross-attention을 거친 쿼리는 후보 구간을 좌우 두 방향에서 읽는다. 반대쪽 끝에는 구간 안에서 쌓은 상태와, 내부 셀의 유지율과 쿼리 게이트를 거쳐 남은 바깥 상태가 함께 담긴다. 디코더는 구간별 상태에 경계 확률을 곱해 합산한 뒤, 그 결과를 투영해 FFN과 예측 헤드로 보낼 쿼리에 더한다.</figcaption>
+<div class="mm-stage"><picture><source data-animation="assets/contributions/architecture-film-mobile.gif?v=evidence-v2-20261111" height="1190" media="(max-width: 650px)" srcset="assets/contributions/architecture-film-mobile.svg?v=evidence-v2-20261111" width="620"/><img alt="이미지 한 장이 백본과 인코더, 디코더를 통과한다. stride-8 상태 특징에서 경계 후보의 세 단서를 읽어 첫 층 분포 logit을 한 번 보정한다. 후속 층은 이 분포를 정제한다. 이웃 DN은 학습 시 쿼리 박스에만 적용한다." data-animation="assets/contributions/architecture-film.gif?v=evidence-v2-20261111" height="660" loading="lazy" src="assets/contributions/architecture-film.svg?v=evidence-v2-20261111" width="1080"/></picture></div>
+<figcaption class="caption"><strong>Figure 2. LWR.</strong> 전체 구조를 유지한 채 오른쪽 상세에서 경계 근거의 계산 순서를 설명한다. 가장 촘촘한 인코더 특징을 네 방향으로 스캔해 stride-8 상태 특징을 만든다. 공유 헤드는 기존 FDR 후보 위치의 직접 쿼리 유사도, first-hit 정보, 후보 안팎의 국소 관측을 결합한다. 출력을 0으로 초기화한 보정값을 첫 디코더 층의 분포 logit에 한 번 더하며, 후속 FDR 정제와 위치 품질 추정, 자체 증류는 유지한다. 별도의 denoising 경로는 학습 중 쿼리 박스를 바꾼다. 변형 이미지를 추가로 입력하는 경로가 아니다.</figcaption>
 </figure>
 </section>
 <div class="research-notes method-details">
-<details id="method"><summary>한 구간에서 바깥 상태의 전달량을 계산하는 법</summary>
-<p>가로 구간 <i>I</i>에서 <i>h</i><sub>in</sub>은 0부터 시작해 구간 내부에서 쌓은 상태이고, <i>h</i><sub>ext</sub>는 구간에 들어오기 직전의 상태다. <i>a</i><sub>j</sub>는 셀 <i>j</i>에서 이전 상태를 얼마나 남길지 나타내는 채널별 유지율이다. 한 방향에서 읽은 상태는 다음과 같다.</p>
-<p class="state-equation"><i>h</i><sub>in</sub> + <i>g</i><sub>q</sub> (∏<sub>j ∈ I</sub> <i>a</i><sub>j</sub>) ⊙ <i>h</i><sub>ext</sub></p>
-<p>두 방향에는 같은 쿼리 게이트 <i>g</i><sub>q</sub>와 같은 읽기 가중치를 쓴다. 후보 구간의 확률은 직전 디코더 층에서 예측한 경계 분포로 구한다. 경계가 격자선 사이에 놓이면 셀이 구간에 걸친 비율을 반영한다.</p></details>
+<details id="method"><summary>후보 특징을 분포 logit에 반영하는 방법</summary><p>각 특징 위치의 상태는 <i>h</i><sub>t</sub> = <i>a</i><sub>t</sub> ⊙ <i>h</i><sub>t−1</sub> + <i>u</i><sub>t</sub>로 갱신된다. 입력 특징이 이전 상태의 유지율과 새로 쓸 내용을 정한다. 좌·우·상·하 네 방향의 스캔은 파라미터를 공유하며, 각 상태의 출력 평균을 국소 투영 특징에 더한다.</p>
+<p>표본선 하나에서 후보 <i>j</i>에 멈출 학습 확률을 α<sub>j</sub>라 하면, 중심에서 바깥쪽 순서의 first-hit 질량과 끝까지 멈추지 않을 확률은 다음과 같다.</p>
+<p class="state-equation"><i>m</i><sub>j</sub> = α<sub>j</sub> ∏<sub>i&lt;j</sub>(1 − α<sub>i</sub>),   <i>p</i><sub>no-hit</sub> = ∏<sub>i</sub>(1 − α<sub>i</sub>).</p>
+<p>유효 후보 안에서 멈춘다는 조건으로 first-hit을 정규화하고, no-hit 신호는 따로 유지한다. 유효한 표본선들의 조건부 분포는 같은 비중으로 합친다. No-hit은 전체 표본선의 값을 따로 평균한다. 안팎 특징은 각 후보에서 안쪽과 바깥쪽으로 1·2 stride-8 셀 떨어진 위치에서 읽는다. 공유 헤드가 이 단서들과 직접 쿼리 유사도를 Δℓ<sub>j</sub>로 바꾸고 첫 층의 점수를 ℓ′<sub>j</sub> = ℓ<sub>j</sub> + Δℓ<sub>j</sub>로 보정한다.</p>
+<p>First-hit은 학습하는 종료 단서다. 실제 객체 경계의 확률로 측정하거나 보정한 값은 아니다. 추가 이미지나 특징 변형 분기는 사용하지 않는다.</p></details>
+<details id="denoising"><summary>Denoising 학습에서는 무엇이 달라지나?</summary><p>같은 클래스의 객체가 가까이 있으면 일부 positive 쿼리 박스의 한 변을 이웃 쪽으로 옮긴다. 두 객체를 합친 박스나 사이에 걸친 박스는 GT와의 겹침을 검사한 뒤 negative로 사용한다. 기존 쿼리 수, attention mask, 검출 손실은 유지한다. 이 쿼리들은 추론 때 사라지며, 표준 Mosaic/MixUp과 EMA 학습 일정은 그대로 사용한다.</p></details>
 </div>
-<section id="results" class="chapter"><h2>COCO val2017 객체 검출 결과</h2><p class="prose">L 실험은 ImageNet 가중치로 초기화한 HGNetv2-B4 백본에서 시작한다. 외부 교사 없이 COCO train2017에서 RT-DETRv4 증강 일정으로 58 epoch 학습하고, val2017 전체 5,000장을 640 × 640으로 평가한다.</p>
-<div class="result-block"><h3 id="detector-comparison">HGNetv2 기반 검출기와의 비교</h3>
+<section class="chapter" id="results"><h2>COCO val2017 객체 검출</h2><p class="prose">현재 L 학습은 ImageNet 사전학습 HGNetv2-B4 백본에서 시작해 COCO train2017로 58 epoch 진행한다. RT-DETRv4 표준 증강을 사용하며 외부 교사와 Objects365 사전학습은 사용하지 않는다. 평가는 640 × 640 입력으로 val2017 5,000장 전체에서 수행한다. 새 모델의 COCO 결과는 아직 측정 전이다.</p>
+<div class="result-block"><h3 id="detector-comparison">HGNetv2 검출기와의 비교</h3>
 <div class="tablewrap" tabindex="0"><table aria-labelledby="detector-comparison">
 <thead><tr><th scope="col">검출기</th><th scope="col">크기</th><th scope="col">백본</th><th scope="col">박스 AP</th></tr></thead>
 <tbody>
 <tr><th scope="row"><a href="https://github.com/Intellindust-AI-Lab/DEIM#deim-d-fine">D-FINE</a></th><td>L</td><td>HGNetv2-B4</td><td>54.0</td></tr>
 <tr><th scope="row"><a href="https://github.com/Intellindust-AI-Lab/DEIM#deim-d-fine">DEIM</a></th><td>L</td><td>HGNetv2-B4</td><td>54.7</td></tr>
-<tr class="ours"><th scope="row">Boundary-State DETR · selective</th><td>L</td><td>HGNetv2-B4</td><td>측정 전</td></tr>
+<tr class="ours"><th scope="row">LWR</th><td>L</td><td>HGNetv2-B4</td><td>측정 전</td></tr>
 </tbody></table></div></div>
-<details id="transport-ablation"><summary>박스 내부 특징에 따라 감쇠시키는 효과</summary><div class="detail-body">
-<div class="tablewrap" tabindex="0"><table class="crossing-rules" aria-label="박스 내부 특징에 따라 감쇠시키는 효과">
-<thead><tr><th scope="col">통과 규칙</th><th scope="col">반대쪽 경계에 도달하는 바깥 상태</th></tr></thead>
-<tbody><tr><th scope="row">selective</th><td>박스 안 각 셀의 특징에 따라 유지율이 달라진다.</td></tr>
-<tr><th scope="row">transport_fixed</th><td>학습한 채널별 유지율을 구간 길이만큼 곱한다.</td></tr>
-<tr><th scope="row">transport_unit</th><td>구간에 들어온 바깥 상태를 감쇠 없이 전달한다.</td></tr></tbody></table></div>
-<p>세 모델 모두 같은 방식으로 쿼리 게이트를 학습한다. 이 비교의 COCO AP는 측정 전이다.</p></div></details>
-<details><summary>이전 Boundary-State DETR 학습 결과</summary><div class="detail-body"><p>아래 S와 L 수치는 이전 디코더로 측정한 결과다. 현재 제안 모델의 AP는 위 표에 따로 표시한다.</p><div class="tablewrap" tabindex="0"><table aria-label="이전 Boundary-State DETR 학습 결과"><thead><tr><th scope="col">이전 모델</th><th scope="col">AP</th><th scope="col">AP50</th><th scope="col">AP75</th><th scope="col">AP<sub>S</sub></th><th scope="col">AP<sub>M</sub></th><th scope="col">AP<sub>L</sub></th></tr></thead><tbody><tr><th scope="row">Boundary-State DETR-S</th><td>49.7</td><td>66.7</td><td>53.8</td><td>32.0</td><td>53.5</td><td>66.4</td></tr><tr><th scope="row">Boundary-State DETR-L</th><td>55.5</td><td>73.1</td><td>60.4</td><td>37.1</td><td>60.1</td><td>72.9</td></tr></tbody></table></div></div></details>
+<details id="evidence-ablation"><summary>경계 근거를 구성하는 각 경로의 기여</summary><div class="detail-body"><div class="tablewrap" tabindex="0"><table aria-label="경계 근거를 구성하는 각 경로의 기여" class="crossing-rules"><thead><tr><th scope="col">비교 모델</th><th scope="col">제안 모델에서 바꾸는 부분</th><th scope="col">AP</th></tr></thead><tbody><tr><th scope="row">제안 모델</th><td>세 단서, 선택적 상태 특징, 이웃 DN 모두 사용</td><td>—</td></tr><tr><th scope="row">직접 유사도 제거</th><td>점수 헤드의 직접 cosine 입력 제거</td><td>—</td></tr><tr><th scope="row">First-hit 제거</th><td>First-hit·no-hit 입력과 hazard 경로 제거</td><td>—</td></tr><tr><th scope="row">안팎 단서 제거</th><td>후보 주변의 국소 band 통계 제거</td><td>—</td></tr><tr><th scope="row">선택적 스캔 제거</th><td>같은 후보 위치에서 투영한 국소 특징을 바로 관측</td><td>—</td></tr><tr><th scope="row">기존 denoising</th><td>경계 근거 헤드를 유지하고 host의 원래 DN 사용</td><td>—</td></tr></tbody></table></div><p>증강 일정과 검출 손실은 모든 행에서 같다. 직접 유사도를 제거해도 first-hit과 안팎 단서를 구성하는 쿼리 정보는 유지한다.</p></div></details>
+<details><summary>이전 Boundary-State DETR 학습 결과</summary><div class="detail-body"><p>아래는 이전 Boundary-State DETR 구조로 얻은 실험 기록이다. LWR의 결과에 포함하지 않는다.</p><div class="tablewrap" tabindex="0"><table aria-label="이전 Boundary-State DETR 학습 결과"><thead><tr><th scope="col">이전 모델</th><th scope="col">AP</th><th scope="col">AP50</th><th scope="col">AP75</th><th scope="col">AP<sub>S</sub></th><th scope="col">AP<sub>M</sub></th><th scope="col">AP<sub>L</sub></th></tr></thead><tbody><tr><th scope="row">Boundary-State DETR-S</th><td>49.7</td><td>66.7</td><td>53.8</td><td>32.0</td><td>53.5</td><td>66.4</td></tr><tr><th scope="row">Boundary-State DETR-L</th><td>55.5</td><td>73.1</td><td>60.4</td><td>37.1</td><td>60.1</td><td>72.9</td></tr></tbody></table></div></div></details>
 <details><summary>이전 실험 · COCO 체크포인트에서 12 epoch 추가학습</summary><div class="detail-body"><p>이 실험은 COCO로 학습한 검출기에서 시작해 cross-attention을 교체했던 초기 설계를 비교했다. 위 본학습과 학습 조건 및 디코더 구조가 다르다.</p><div class="tablewrap" tabindex="0"><table aria-label="이전 구성 요소 비교"><thead><tr><th>디코더 구성</th><th>AP</th></tr></thead><tbody><tr><th scope="row">기본 디코더 (B0)</th><td>55.455</td></tr><tr><th scope="row">후보 사각형의 기대 상태</th><td>55.461</td></tr><tr><th scope="row">단일 박스</th><td>55.016</td></tr><tr><th scope="row">점유 확률 가중 풀링</th><td>55.354</td></tr><tr><th scope="row">입력과 무관한 상태 전이</th><td>55.205</td></tr></tbody></table></div></div></details></section></div></main>
-<footer class="footer"><p>COCO 사진 · <a href="https://www.flickr.com/photos/rustydarbonne/2319776213/">Blue Bike</a> (Talbot Troy), <a href="https://www.flickr.com/photos/unfinishedportrait/7230915270/">Allegiant MD-83</a> (UnfinishedPortraitmaker), <a href="https://www.flickr.com/photos/bgreenlee/8603855827/">Zebra</a> (bgreenlee). <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>. 사진을 잘라 도식과 주석을 겹쳤습니다.</p><p>페이지 디자인 참고 · <a href="https://deepflow-project.github.io/">DeepFlow</a> &nbsp;·&nbsp; <a href="#top">맨 위로</a></p></footer></body></html>
+<footer class="footer"><p>COCO 사진 · <a href="https://www.flickr.com/photos/rustydarbonne/2319776213/">Blue Bike</a> (Talbot Troy), <a href="https://www.flickr.com/photos/unfinishedportrait/7230915270/">Allegiant MD-83</a> (UnfinishedPortraitmaker), <a href="https://www.flickr.com/photos/bgreenlee/8603855827/">Zebra</a> (bgreenlee). <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>. 사진을 잘라 도식과 주석을 겹쳤습니다.</p><p>페이지 디자인 참고 · <a href="https://deepflow-project.github.io/">DeepFlow</a>  ·  <a href="#top">맨 위로</a></p></footer></body></html>
