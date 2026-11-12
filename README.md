@@ -23,10 +23,9 @@ are the source of truth:
   images. Standard image augmentation is retained; no paired-view branch or
   external teacher is used.
 
-The new model's COCO AP and B300 latency are pending. S/L values in the collapsed
-history belong to earlier Boundary-State DETR architectures. They must not be
-presented as results for v2. Published D-FINE/DEIM values are linked to the official
-DEIM model zoo; the extended RT-DETRv4 comparison links its paper.
+The page presents the current method, its figures and the planned ablations.
+COCO results for this model are pending. Published D-FINE/DEIM values are linked
+to the official DEIM model zoo; the extended RT-DETRv4 comparison links its paper.
 
 ## Publishing
 
