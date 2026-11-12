@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#ffffff" name="theme-color"/><meta content="LPT는 최종 경계 분포의 확률을 인접 후보 사이에서 옮기고 실제 좌표 거리로 보정량을 제한합니다." name="description"/><title>Local Probability Transport for Precise Object Detection</title><link href="ko.html" hreflang="ko" rel="alternate"/><link href="index.html" hreflang="en" rel="alternate"/><link href="assets/mark.svg?v=final-transport-20261112" rel="icon" type="image/svg+xml"/><link href="fonts.css?v=final-transport-20261112" rel="stylesheet"/><link href="site.css?v=final-transport-20261112" rel="stylesheet"/><link href="hero.css?v=final-transport-20261112" rel="stylesheet"/><link href="evolution.css?v=final-transport-20261112" rel="stylesheet"/><script defer="" src="evolution.js?v=final-transport-20261112"></script><script defer="" src="hero.js?v=final-transport-20261112"></script><link href="method-motion.css?v=final-transport-20261112" rel="stylesheet"/><script defer="" src="architecture-film.js?v=final-transport-20261112"></script><meta content="Local Probability Transport for Precise Object Detection" property="og:title"/><meta content="LPT는 최종 경계 분포의 확률을 인접 후보 사이에서 옮기고 실제 좌표 거리로 보정량을 제한합니다." property="og:description"/><meta content="website" property="og:type"/></head>
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#ffffff" name="theme-color"/><meta content="LPT는 최종 경계 분포의 확률을 인접 후보 사이에서 옮기고 실제 좌표 거리로 보정량을 제한합니다." name="description"/><title>Local Probability Transport for Precise Object Detection</title><link href="ko.html" hreflang="ko" rel="alternate"/><link href="index.html" hreflang="en" rel="alternate"/><link href="assets/mark.svg?v=paper-figures-20261113" rel="icon" type="image/svg+xml"/><link href="fonts.css?v=paper-figures-20261113" rel="stylesheet"/><link href="site.css?v=paper-figures-20261113" rel="stylesheet"/><link href="hero.css?v=paper-figures-20261113" rel="stylesheet"/><link href="evolution.css?v=paper-figures-20261113" rel="stylesheet"/><script defer="" src="hero.js?v=paper-figures-20261113"></script><link href="method-motion.css?v=paper-figures-20261113" rel="stylesheet"/><script defer="" src="architecture-film.js?v=paper-figures-20261113"></script><meta content="Local Probability Transport for Precise Object Detection" property="og:title"/><meta content="LPT는 최종 경계 분포의 확률을 인접 후보 사이에서 옮기고 실제 좌표 거리로 보정량을 제한합니다." property="og:description"/><meta content="website" property="og:type"/></head>
 <body id="top"><a class="skip" href="#main">연구 내용으로 건너뛰기</a>
 <nav aria-label="언어" class="language"><a href="index.html" lang="en">English</a><span class="divider">/</span><span aria-current="page">한국어</span></nav>
 <main id="main">
@@ -11,18 +11,18 @@
 <div aria-label="COCO 이미지 선택" id="boundary-viewer" role="region">
 <div class="example-panels" data-example="자전거">
 <figure class="scene"><div class="scene-image"><img alt="검출기에 입력하는 COCO 사진." height="282" src="assets/examples/bicycle-scene.webp" width="417"/></div><figcaption><strong>입력 이미지</strong><span>한 번의 백본·인코더 연산으로 모든 쿼리가 사용할 특징을 만듭니다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" src="assets/examples/bicycle-candidates.svg?v=final-transport-20261112" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>기존 FDR의 후보 위치에서 특징을 읽습니다. 그림은 한 변의 세 표본선을 나타낸 도식입니다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img alt="인접 후보 사이의 확률 이동과 보정 전후 경계 분포를 보여주는 도식." height="282" src="assets/examples/bicycle-evidence.svg?v=final-transport-20261112" width="417"/></div><figcaption><strong>국소 확률 이동</strong><span>마지막 분포에서 인접 후보끼리 확률을 옮겨 경계를 보정합니다. 막대는 원리를 설명하기 위한 예시입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" src="assets/examples/bicycle-candidates.svg?v=paper-figures-20261113" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>기존 FDR의 후보 위치에서 특징을 읽습니다. 그림은 한 변의 세 표본선을 나타낸 도식입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="인접 후보 사이의 확률 이동과 보정 전후 경계 분포를 보여주는 도식." height="282" src="assets/examples/bicycle-evidence.svg?v=paper-figures-20261113" width="417"/></div><figcaption><strong>국소 확률 이동</strong><span>마지막 분포에서 인접 후보끼리 확률을 옮겨 경계를 보정합니다. 막대는 원리를 설명하기 위한 예시입니다.</span></figcaption></figure>
 </div>
 <div class="example-panels" data-example="비행기">
 <figure class="scene"><div class="scene-image"><img alt="검출기에 입력하는 COCO 사진." height="282" loading="lazy" src="assets/examples/airplane-scene.webp" width="417"/></div><figcaption><strong>입력 이미지</strong><span>한 번의 백본·인코더 연산으로 모든 쿼리가 사용할 특징을 만듭니다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" loading="lazy" src="assets/examples/airplane-candidates.svg?v=final-transport-20261112" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>기존 FDR의 후보 위치에서 특징을 읽습니다. 그림은 한 변의 세 표본선을 나타낸 도식입니다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img alt="인접 후보 사이의 확률 이동과 보정 전후 경계 분포를 보여주는 도식." height="282" loading="lazy" src="assets/examples/airplane-evidence.svg?v=final-transport-20261112" width="417"/></div><figcaption><strong>국소 확률 이동</strong><span>마지막 분포에서 인접 후보끼리 확률을 옮겨 경계를 보정합니다. 막대는 원리를 설명하기 위한 예시입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" loading="lazy" src="assets/examples/airplane-candidates.svg?v=paper-figures-20261113" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>기존 FDR의 후보 위치에서 특징을 읽습니다. 그림은 한 변의 세 표본선을 나타낸 도식입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="인접 후보 사이의 확률 이동과 보정 전후 경계 분포를 보여주는 도식." height="282" loading="lazy" src="assets/examples/airplane-evidence.svg?v=paper-figures-20261113" width="417"/></div><figcaption><strong>국소 확률 이동</strong><span>마지막 분포에서 인접 후보끼리 확률을 옮겨 경계를 보정합니다. 막대는 원리를 설명하기 위한 예시입니다.</span></figcaption></figure>
 </div>
 <div class="example-panels" data-example="얼룩말">
 <figure class="scene"><div class="scene-image"><img alt="검출기에 입력하는 COCO 사진." height="282" loading="lazy" src="assets/examples/zebra-scene.webp" width="417"/></div><figcaption><strong>입력 이미지</strong><span>한 번의 백본·인코더 연산으로 모든 쿼리가 사용할 특징을 만듭니다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" loading="lazy" src="assets/examples/zebra-candidates.svg?v=final-transport-20261112" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>기존 FDR의 후보 위치에서 특징을 읽습니다. 그림은 한 변의 세 표본선을 나타낸 도식입니다.</span></figcaption></figure>
-<figure class="scene"><div class="scene-image"><img alt="인접 후보 사이의 확률 이동과 보정 전후 경계 분포를 보여주는 도식." height="282" loading="lazy" src="assets/examples/zebra-evidence.svg?v=final-transport-20261112" width="417"/></div><figcaption><strong>국소 확률 이동</strong><span>마지막 분포에서 인접 후보끼리 확률을 옮겨 경계를 보정합니다. 막대는 원리를 설명하기 위한 예시입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="박스의 한 변에 대한 세 표본선과 경계 후보 위치를 나타낸 도식." height="282" loading="lazy" src="assets/examples/zebra-candidates.svg?v=paper-figures-20261113" width="417"/></div><figcaption><strong>경계 후보 위치</strong><span>기존 FDR의 후보 위치에서 특징을 읽습니다. 그림은 한 변의 세 표본선을 나타낸 도식입니다.</span></figcaption></figure>
+<figure class="scene"><div class="scene-image"><img alt="인접 후보 사이의 확률 이동과 보정 전후 경계 분포를 보여주는 도식." height="282" loading="lazy" src="assets/examples/zebra-evidence.svg?v=paper-figures-20261113" width="417"/></div><figcaption><strong>국소 확률 이동</strong><span>마지막 분포에서 인접 후보끼리 확률을 옮겨 경계를 보정합니다. 막대는 원리를 설명하기 위한 예시입니다.</span></figcaption></figure>
 </div>
 </div>
 <div aria-label="설명 단계 선택" class="stage-controls" hidden="" role="group"><button aria-pressed="true" data-stage="0" type="button">입력 이미지</button><button aria-pressed="false" data-stage="1" type="button">경계 후보 위치</button><button aria-pressed="false" data-stage="2" type="button">국소 확률 이동</button></div>
@@ -33,46 +33,40 @@
 <details id="motivation"><summary>연구 동기와 목표</summary><p>이미 예측한 박스를 세밀하게 다듬을 때는 어느 후보에 영상 단서가 있는지와 얼마나 움직일지를 함께 정해야 합니다. 후보 인덱스가 한 칸 달라도 실제 영상에서의 거리는 같지 않습니다. LPT의 목표는 후보 위치의 특징으로 이동 방향을 정하고, 실제 좌표 거리로 최종 분포의 보정량을 제한하는 것입니다.</p></details>
 <details id="highlights"><summary>핵심 설계</summary><ul><li><strong>후보 위치에서 읽는 공유 특징.</strong> stride-8 Mamba 상태 특징을 한 번 만들고, 각 경계 후보에서 읽은 특징을 쿼리·현재 확률과 함께 사용합니다.</li><li><strong>최종 분포의 국소 확률 이동.</strong> 인접 후보 사이에서 기존 확률을 옮깁니다. 보정된 분포를 바로 박스로 변환하므로, 이후 decoder 층이 보정을 다시 바꾸지 않습니다.</li><li><strong>실제 거리에 따른 이동 예산.</strong> 불균일한 후보 간격을 반영해 분포 이동량을 제한합니다. 같은 예측기와 거리 예산을 쓰는 비교 실험으로 국소 이동의 역할을 확인합니다.</li></ul></details>
 </div>
+<section aria-labelledby="overview-title" class="chapter" id="overview">
+<h2 id="overview-title">전체 검출 구조</h2>
+<figure class="paper-figure paper-overview" id="figure-1">
+<div class="paper-visual"><img alt="하나의 입력 이미지에서 기존 검출기와 공유 선택적 상태 특징을 계산한다. 인접 후보 비교로 LPT 이동량을 정하고 Integral과 LQE 직전에 최종 분포를 보정한다." width="1000" height="913" loading="lazy" src="assets/paper-figures/lpt-fig1-overview.png?v=paper-figures-20261113"/></div>
+<figcaption class="caption"><strong>Figure 1. Local Probability Transport의 전체 구조.</strong> 한 번의 이미지 인코딩으로 기존 검출기와 공유 stride-8 상태 특징에 필요한 입력을 만든다. 쿼리를 조건으로 기존 후보 위치의 특징을 비교하고 제한된 범위에서 확률을 옮긴다. LPT는 기존 디코더와 예측 헤드를 유지하면서 박스 변환과 위치 품질 추정 직전에 최종 FDR 분포를 보정한다.</figcaption>
+</figure>
+</section>
 <section aria-labelledby="evolution-title" class="chapter evolution" id="evolution">
 <h2 id="evolution-title">Advancing DETR Object Detection</h2>
-<figure>
-<div class="ev-wide"><div aria-label="D-FINE의 분포 회귀, DEIM의 학습 방식, LPT의 최종 분포 보정 비교. 제안 모델 AP는 미측정." class="ev-stack" id="ev-frames" role="img">
-<div class="ev-frame" data-frame="1"><img alt="" height="510" loading="lazy" src="assets/evolution/stage-1.svg?v=final-transport-20261112" width="1480"/></div>
-<div class="ev-frame" data-frame="2"><img alt="" height="510" loading="lazy" src="assets/evolution/stage-2.svg?v=final-transport-20261112" width="1480"/></div>
-<div class="ev-frame ev-current" data-frame="3"><img alt="" height="510" loading="lazy" src="assets/evolution/stage-3.svg?v=final-transport-20261112" width="1480"/></div>
-</div>
-<div class="ev-small">
-<p class="ev-hint">좌우로 넘겨 세 검출기 비교</p>
-<div aria-label="가로로 넘겨 비교하는 검출기 구조도" class="ev-methods" role="region" tabindex="0">
-<img alt="D-FINE 검출기" height="510" loading="lazy" src="assets/evolution/diagram-1.svg?v=final-transport-20261112" width="350"/>
-<img alt="DEIM 검출기" height="510" loading="lazy" src="assets/evolution/diagram-2.svg?v=final-transport-20261112" width="350"/>
-<img alt="LPT: 최종 FDR 분포, 공유 후보 특징, 거리 예산을 둔 확률 이동, 박스 변환." height="510" loading="lazy" src="assets/evolution/diagram-3.svg?v=final-transport-20261112" width="350"/>
-</div>
-<img alt="COCO val2017 AP: D-FINE 54.0, DEIM 54.7. LPT는 미측정." class="ev-chart" height="510" loading="lazy" src="assets/evolution/ap-3.svg?v=final-transport-20261112" width="400"/>
-</div></div>
-<figcaption class="caption ev-caption"><strong>Figure 1. 최종 경계 분포의 보정.</strong> (a) D-FINE은 박스 경계의 분포를 반복적으로 정제한다. (b) DEIM은 dense one-to-one matching과 매칭 품질을 반영한 학습을 사용한다. (c) LPT는 호스트의 회귀·학습 구조를 유지하면서 마지막 경계 분포에 국소 확률 이동을 적용한다. 후보 위치에서 읽은 공유 상태 특징이 이동을 결정하고, 실제 좌표 거리가 보정량을 제한한다. (d) L 모델의 COCO val2017 AP. 제안 모델은 평가 후 기재한다.</figcaption>
+<figure class="paper-figure paper-animated" id="figure-2">
+<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="좌우로 이동할 수 있는 구조도"><img alt="D-FINE의 층별 경계 분포 보정, DEIM의 dense one-to-one matching, 기존 학습 방식을 유지하며 최종 분포에 제한된 국소 이동을 적용하는 LPT를 비교한다." width="1800" height="728" loading="lazy" src="assets/paper-figures/lpt-fig2-advancing.png?v=paper-figures-20261113" data-animation="assets/paper-figures/lpt-fig2-advancing.gif?v=paper-figures-20261113"/></div>
+<figcaption class="caption ev-caption"><strong>Figure 2. 분포 보정에서 국소 확률 이동으로.</strong> (a) D-FINE은 디코더 층을 거치며 박스 각 변의 분포 보정을 누적한다. (b) DEIM은 분포 예측 경로를 유지하면서 dense one-to-one matching으로 학습을 강화한다. (c) LPT는 이 학습 방식을 유지하고 인접 후보 위치에서 읽은 공유 상태 특징을 비교한다. 이후 거리 예산 안에서 최종 분포의 확률을 옮긴 뒤 기존 방식으로 박스를 복원한다. 점선은 학습 감독 경로를 나타내며, LPT 보정은 학습과 추론에 모두 사용한다.</figcaption>
 </figure>
-<details class="ev-extension" id="figure-1-1">
-<summary>Figure 1-1. RT-DETRv4와 LPT의 차이</summary>
+<details class="ev-extension" id="figure-2-1">
+<summary>Figure 2-1. RT-DETRv4와 LPT의 차이</summary>
 <figure>
 <div aria-label="D-FINE, DEIM, RT-DETRv4, LPT" class="ev-comparison" role="region" tabindex="0">
-<div><img alt="(a) D-FINE은 박스 경계 분포를 보정한다." height="510" loading="lazy" src="assets/evolution/diagram-1.svg?v=final-transport-20261112" width="350"/><p class="ev-score">54.0 <span>박스 AP</span></p></div>
-<div><img alt="(b) DEIM은 학습 중 일대일 매칭 수를 늘린다." height="510" loading="lazy" src="assets/evolution/diagram-2.svg?v=final-transport-20261112" width="350"/><p class="ev-score">54.7 <span>박스 AP</span></p></div>
-<div><img alt="(c) RT-DETRv4는 학습할 때 깊은 인코더 특징을 DINOv3 교사 특징에 맞춘다. 추론 때는 검출기만 쓴다." height="510" loading="lazy" src="assets/evolution/rtv4-panel.svg?v=final-transport-20261112" width="350"/><p class="ev-score">55.4 <span>박스 AP</span></p></div>
-<div><img alt="LPT: 최종 FDR 분포, 공유 후보 특징, 거리 예산을 둔 확률 이동, 박스 변환." height="510" loading="lazy" src="assets/evolution/selective-panel.svg?v=final-transport-20261112" width="350"/><p class="ev-score">AP 측정 전</p></div>
+<div><img alt="(a) D-FINE은 박스 경계 분포를 보정한다." height="510" loading="lazy" src="assets/evolution/diagram-1.svg?v=paper-figures-20261113" width="350"/><p class="ev-score">54.0 <span>박스 AP</span></p></div>
+<div><img alt="(b) DEIM은 학습 중 일대일 매칭 수를 늘린다." height="510" loading="lazy" src="assets/evolution/diagram-2.svg?v=paper-figures-20261113" width="350"/><p class="ev-score">54.7 <span>박스 AP</span></p></div>
+<div><img alt="(c) RT-DETRv4는 학습할 때 깊은 인코더 특징을 DINOv3 교사 특징에 맞춘다. 추론 때는 검출기만 쓴다." height="510" loading="lazy" src="assets/evolution/rtv4-panel.svg?v=paper-figures-20261113" width="350"/><p class="ev-score">55.4 <span>박스 AP</span></p></div>
+<div><img alt="LPT: 최종 FDR 분포, 공유 후보 특징, 거리 예산을 둔 확률 이동, 박스 변환." height="510" loading="lazy" src="assets/evolution/selective-panel.svg?v=paper-figures-20261113" width="350"/><p class="ev-score">AP 측정 전</p></div>
 </div>
-<figcaption class="caption"><strong>Figure 1-1. 인코더 증류와 최종 분포 보정.</strong> RT-DETRv4는 DINOv3를 teacher로 사용하는 DSI와 증류 강도를 조절하는 GAM으로 인코더를 학습한다. LPT는 외부 teacher 없이 후보 위치의 특징으로 마지막 경계 분포를 보정한다. FDR, dense one-to-one matching, native denoising과 GO-LSD는 유지하며 DSI·GAM은 사용하지 않는다. <a href="https://arxiv.org/abs/2510.25257">RT-DETRv4</a>.</figcaption>
+<figcaption class="caption"><strong>Figure 2-1. 인코더 증류와 최종 분포 보정.</strong> RT-DETRv4는 DINOv3를 teacher로 사용하는 DSI와 증류 강도를 조절하는 GAM으로 인코더를 학습한다. LPT는 외부 teacher 없이 후보 위치의 특징으로 마지막 경계 분포를 보정한다. FDR, dense one-to-one matching, native denoising과 GO-LSD는 유지하며 DSI·GAM은 사용하지 않는다. <a href="https://arxiv.org/abs/2510.25257">RT-DETRv4</a>.</figcaption>
 </figure>
 </details>
 </section>
 <section aria-labelledby="architecture-title" class="chapter" id="architecture"><h2 id="architecture-title">Local Probability Transport</h2>
-<figure class="architecture-film" id="architecture-film">
-<div class="mm-stage"><picture><source data-animation="assets/contributions/architecture-film-mobile.gif?v=final-transport-20261112" height="1190" media="(max-width: 650px)" srcset="assets/contributions/architecture-film-mobile.svg?v=final-transport-20261112" width="620"/><img alt="한 번의 이미지 인코딩, 공유 상태 특징, 최종 분포의 인접 확률 이동과 거리 제한. 같은 보정 분포를 박스 변환과 품질 추정·학습에 사용한다." data-animation="assets/contributions/architecture-film.gif?v=final-transport-20261112" height="660" loading="lazy" src="assets/contributions/architecture-film.svg?v=final-transport-20261112" width="1080"/></picture></div>
-<figcaption class="caption"><strong>Figure 2. Local Probability Transport.</strong> 전체 구조를 유지한 채 후보 관측과 확률 이동을 차례로 확대한다. stride-8 특징의 행·열 양방향 선택적 스캔으로 모든 쿼리가 공유하는 상태 특징을 만든다. 기존 후보 위치에서 읽은 특징, 쿼리, 현재 확률과 좌표 간격으로 인접 후보 간 이동을 예측한다. 마지막 누적 FDR 분포를 거리 예산 안에서 보정하고, 같은 분포를 Integral·LQE와 기존 FGL·GO-LSD 학습에 전달한다. 보정기는 학습과 추론에 모두 사용하며, 손실 계산과 denoising query는 학습 때만 사용한다.</figcaption>
+<figure class="architecture-film paper-figure paper-animated" id="architecture-film">
+<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="좌우로 이동할 수 있는 구조도"><picture><img alt="전체 검출 구조를 왼쪽에 유지하며 공유 선택적 상태 특징, 인접 후보 비교, 실제 거리 예산과 확률 용량을 지키는 국소 이동의 세 단계를 확대한다." width="1800" height="840" loading="lazy" src="assets/paper-figures/lpt-fig3-operator.png?v=paper-figures-20261113" data-animation="assets/paper-figures/lpt-fig3-operator.gif?v=paper-figures-20261113"/></picture></div>
+<figcaption class="caption"><strong>Figure 3. 후보 비교와 확률을 보존하는 국소 이동.</strong> 행·열 양방향 스캔으로 공유 stride-8 상태 특징을 만든다. 기존 후보 위치의 특징과 쿼리 유사도, 현재 확률, 좌표 간격을 사용해 인접 후보 사이의 이동 방향과 양을 정한다. 첫 층의 참조 박스는 후보 위치를 정하고, 보정 전 최종 박스는 거리 예산을 정한다. 각 후보가 내보낼 수 있는 확률과 공통 배율로 이동량을 제한하면서 확률 총합을 보존한다. 보정된 분포는 Integral·LQE와 기존 위치 학습에 함께 사용한다. 반복 보정에서는 영상 특징을 재사용하고 고정된 전체 예산을 단계별로 나눈다.</figcaption>
 </figure>
 </section>
 <div class="research-notes method-details">
-<details id="method"><summary>국소 이동과 거리 제한의 의미</summary><p>후보 확률을 pᵢ, 한 보정 단계에서 후보 i에서 i+1로 이동하는 양을 Jᵢ라고 하면, 보정된 확률은 다음과 같습니다. 음수 Jᵢ는 반대 방향의 이동을 뜻합니다.</p><p class="state-equation">p′ᵢ = pᵢ + Jᵢ₋₁ − Jᵢ</p><p>한 후보에서 빠진 양은 이웃 후보에 더해지므로 확률 총합은 유지됩니다. 공유 예측기가 이동 방향과 양을 정하며, 각 후보가 가진 확률보다 많이 내보내지 않도록 제한합니다. 추가로 실제 좌표 xᵢ 사이의 간격을 사용합니다.</p><p class="state-equation">∑ᵢ |Jᵢ| · |xᵢ₊₁ − xᵢ| ≤ ρ · s</p><p>s는 보정 전 최종 박스의 폭 또는 높이입니다. 기본값 ρ = 0.03이면 폭 100px인 박스의 좌우 경계는 각각 기대 좌표가 최대 3px까지 바뀔 수 있습니다. 이는 한 번의 forward에서 보정 전후 차이에 대한 상한입니다. 정답 경계와의 오차나 AP를 보장하는 값은 아닙니다.</p><p>후보 위치를 정하는 첫 층 참조 박스와 이동 예산을 정하는 최종 박스는 구분합니다. 반복 보정을 사용할 때는 후보 특징을 재사용하고, 전체 거리 예산을 반복 횟수로 나눕니다.</p></details>
+<details id="method"><summary>국소 이동과 거리 제한의 의미</summary><p>후보 확률을 pᵢ, 한 보정 단계에서 후보 i에서 i+1로 이동하는 양을 Jᵢ라고 하면, 보정된 확률은 다음과 같습니다. 음수 Jᵢ는 반대 방향의 이동을 뜻합니다.</p><p class="state-equation">p′ᵢ = pᵢ + Jᵢ₋₁ − Jᵢ</p><p>한 후보에서 빠진 양은 이웃 후보에 더해지므로 확률 총합은 유지됩니다. 공유 예측기가 이동 방향과 양을 정하며, 각 후보가 가진 확률보다 많이 내보내지 않도록 제한합니다. 추가로 실제 좌표 xᵢ 사이의 간격을 사용합니다.</p><p class="state-equation">∑ᵢ |Jᵢ| · |xᵢ₊₁ − xᵢ| ≤ ρ · s</p><p>s는 보정 전 최종 박스의 폭 또는 높이입니다. 예를 들어 ρ = 0.03이면 폭 100px인 박스의 좌우 경계는 각각 기대 좌표가 최대 3px까지 바뀔 수 있습니다. 이는 한 번의 forward에서 보정 전후 차이에 대한 상한입니다. 정답 경계와의 오차나 AP를 보장하는 값은 아닙니다.</p><p>후보 위치를 정하는 첫 층 참조 박스와 이동 예산을 정하는 최종 박스는 구분합니다. 반복 보정을 사용할 때는 후보 특징을 재사용하고, 전체 거리 예산을 반복 횟수로 나눕니다.</p></details>
 <details id="training"><summary>학습·추론에서 사용하는 경로</summary><p>영상 특징과 국소 확률 보정은 학습·추론에서 모두 사용합니다. 학습에서는 기존 Mosaic·MixUp 일정, EMA, native denoising과 GO-LSD를 유지합니다. 별도의 변형 이미지 입력, feature perturbation, 이웃 객체 전용 denoising이나 추가 손실은 사용하지 않습니다.</p></details>
 </div>
 <section class="chapter" id="results"><h2>COCO val2017 객체 검출</h2><p class="prose">L 실험은 ImageNet으로 사전학습한 HGNetv2-B4 백본에서 시작해 COCO train2017만으로 58 epoch 학습합니다. 외부 teacher와 Objects365는 사용하지 않습니다. 검증은 COCO val2017 5,000장 전체, 입력 640 × 640으로 진행합니다. 아래 제안 모델의 AP와 속도는 새 구조의 측정 후 채웁니다.</p>

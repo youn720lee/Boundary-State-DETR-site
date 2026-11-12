@@ -50,14 +50,27 @@ Figures appear inline without download buttons.
 
 ## Figure sources
 
+- `assets/paper-figures/`: the paper's Figures 1–3, with matching PDF, SVG,
+  draw.io and raster versions. Figure 1 shows the detector overview; Figure 2
+  compares D-FINE, DEIM and LPT; Figure 3 expands the selective field, adjacent
+  candidate comparison and bounded transport. The COCO photograph source is
+  documented in `assets/paper-figures/CREDITS.md`.
+- `tools/make_paper_figure_motion.py`: regenerate the site's PNGs and GIFs from
+  the bundled paper PDFs using Pillow and Poppler (`pdftoppm`). Optional
+  `--paper-dir` imports a revised set of paper PDF/SVG/draw.io files first.
+  The animation highlights the reading sequence; it does not show measured
+  model activations. The complete detector remains visible in Figure 3.
 - `tools/make_evidence_examples.py`: COCO carousel and an illustrative final
   distribution update. Probabilities in the diagrams are explanatory examples.
-- `tools/make_evolution.py`: D-FINE, DEIM and LPT, plus the collapsed four-model
-  comparison with RT-DETRv4.
-- `tools/make_architecture_film.py`: persistent detector overview with successive
-  detail insets, a static reduced-motion alternative, and a mobile layout.
+- `tools/make_evolution.py --auxiliary-only`: the collapsed four-model
+  comparison with RT-DETRv4. Its Calibri labels are rasterized into the SVG,
+  preserving typography without redistributing font files.
+- `tools/make_architecture_film.py` is the earlier generator; the live page now
+  uses the paper-derived assets above. Do not use it to rebuild current figures.
 
-Figures use Calibri with restrained blue/gray accents and black text.
-Rendering requires Pillow, Playwright and a Chromium browser; set
-`EVOLUTION_CHROMIUM` when an explicit browser executable is needed.
-The website itself has no runtime package dependency.
+Figures use Calibri, black text, gray native blocks and pale blue/green/peach
+method blocks. The live page uses high-resolution PNG/GIF renders so the font
+does not change across operating systems. No font files are added by this update.
+Animations start automatically on entering the viewport; reduced-motion and
+non-JavaScript visitors see the complete still figures. Small screens can scroll
+the wide figures horizontally. The website has no runtime package dependency.

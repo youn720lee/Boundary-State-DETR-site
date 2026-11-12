@@ -1,7 +1,9 @@
 """Build the comparison plates and their portable animated GIF.
 
 Run: python tools/make_evolution.py
-Figure 1-1 panels only: python tools/make_evolution.py --extended-only
+Collapsed comparison, paper palette, no browser:
+python tools/make_evolution.py --auxiliary-only
+Legacy extended panels: python tools/make_evolution.py --extended-only
 Requires Pillow, Playwright with Chromium, and an installed copy of Calibri
 (regular and bold). To use an existing
 Chromium-based browser, set EVOLUTION_CHROMIUM to the executable path.
@@ -16,8 +18,8 @@ import os
 from pathlib import Path
 import re
 
-from PIL import Image
-from playwright.sync_api import sync_playwright
+from PIL import Image, ImageDraw, ImageFont
+import xml.etree.ElementTree as ET
 
 
 OUTPUT = Path(__file__).resolve().parents[1] / "assets" / "evolution"
@@ -30,7 +32,7 @@ DESCRIPTIONS = {
 }
 AP = [54.0, 54.7, None]
 COLORS = ["#a6a6a6", "#4e95d9", "#156082"]
-INK, GRAY, TEAL, GREEN = "#141414", "#e8e8e8", "#0b76a0", "#d9f2d0"
+INK, GRAY, TEAL, GREEN = "#141414", "#E6E6E6", "#37769F", "#DCECD4"
 BLACK, RULE, RED = "#171717", "#d9d9d9", "#b6401a"
 PLATE_W, PLATE_H = 1480, 510
 COLUMN_W, CHART_W = 350, 400
@@ -72,7 +74,7 @@ def architecture(method, letter):
     def node(top, text, fill=GRAY, width=184, dark=False):
         return (rectangle(axis-width/2, top, width, 28, fill)
                 + label(axis, top+19, text, 16, 700 if dark else 500,
-                        "white" if dark else INK))
+                        INK))
 
     def up(start, end):
         return path(f"M{axis} {start}V{end}", TEAL, marker="up")
@@ -89,7 +91,7 @@ def architecture(method, letter):
         up(299, 268),
         node(238, "Final FDR logits"),
         up(133, 108),
-        node(78, "Class + box prediction", "#156082", 184, True),
+        node(78, "Class + box prediction", GRAY, 184, True),
         node(133, "Integral + LQE"),
     ]
     if method == "D-FINE":
@@ -98,7 +100,7 @@ def architecture(method, letter):
             path("M197 252H273V210", "#626262", 1.3, "", "muted"),
         ]
         for n, h in enumerate((3, 7, 16, 26, 19, 8, 4)):
-            pieces.append(rectangle(241 + n*9, 198-h, 7, h, "#6093af"))
+            pieces.append(rectangle(241 + n*9, 198-h, 7, h, "#C8DDEF"))
         pieces += [
             path("M236 198H308", "#525252", 1),
             label(272, 151, "Box-edge", 15, 600),
@@ -109,7 +111,7 @@ def architecture(method, letter):
         pieces += [
             up(238, 163),
             path("M197 92H279V177", "#707070", 1.5, "4 3", "muted"),
-            rectangle(213, 181, 132, 66, "#f3f8fd", "#8ca9be", True),
+            rectangle(213, 181, 132, 66, "#F5E3D5", "#8ca9be", True),
             label(279, 200, "Training", 14, 600),
             label(279, 220, "Dense one-to-one", 15, 700),
             label(279, 238, "matching", 15, 700),
@@ -120,12 +122,12 @@ def architecture(method, letter):
         pieces += [
             up(238, 163),
             path("M163 450H278V430", "#707070", 1.4, "4 3", "muted"),
-            rectangle(232, 389, 92, 38, "#f3f8fd", "#8ca9be", True),
+            rectangle(232, 389, 92, 38, "#F5E3D5", "#8ca9be", True),
             label(278, 405, "DINOv3", 15, 700),
             label(278, 422, "teacher", 14),
             path("M278 389V302", "#707070", 1.4, "4 3", "muted"),
             path("M197 371H242V302", "#707070", 1.4, "4 3", "muted"),
-            rectangle(229, 224, 98, 74, "#f3f8fd", "#8ca9be", True),
+            rectangle(229, 224, 98, 74, "#F5E3D5", "#8ca9be", True),
             label(278, 242, "Training", 14, 600),
             label(278, 261, "DSI loss", 16, 700),
             label(278, 278, "weighted", 14),
@@ -135,17 +137,17 @@ def architecture(method, letter):
         # Change the final distribution once, before every native consumer.
         pieces += [
             up(238, 224), up(198, 163),
-            f'<circle cx="{axis}" cy="211" r="12" fill="#e9f2f6" stroke="{INK}" stroke-width="1.4"/>',
+            f'<circle cx="{axis}" cy="211" r="12" fill="#C8DDEF" stroke="{INK}" stroke-width="1.4"/>',
             label(axis, 217, "T", 20, 700),
             label(66, 232, "p", 15),
             label(66, 185, "p′", 15),
             path("M225 211H119", TEAL, 1.6, "", "up"),
-            rectangle(225, 178, 119, 66, "#e9f2f6", "#7b9aaa"),
+            rectangle(225, 178, 119, 66, "#F5E3D5", "#7b9aaa"),
             label(284.5, 197, "Adjacent-pair", 15, 700),
             label(284.5, 215, "scores", 16, 700),
             label(284.5, 234, "Shared head", 14),
             path("M285 285V248", TEAL, 1.6, "", "up"),
-            rectangle(225, 285, 119, 50, "#e9f2f6", "#7b9aaa"),
+            rectangle(225, 285, 119, 50, "#DCECD4", "#7b9aaa"),
             label(284.5, 304, "Mamba field", 16, 700),
             label(284.5, 324, "stride 8", 15),
             path("M197 371H285V339", TEAL, 1.5, "", "up"),
@@ -273,10 +275,52 @@ def animate(browser):
                    append_images=frames[1:],loop=0,duration=delays,disposal=1,optimize=True)
 
 
+def render_auxiliary_without_browser():
+    """Rebuild only the collapsed comparison; keep the paper GIF assets intact.
+
+    Rasterize the completed Calibri label layer, never redistribute font files.
+    Native SVG shapes remain vector. Requires the installed Windows Calibri font.
+    """
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    for method, letter, filename in [
+        ("D-FINE", "a", "diagram-1.svg"), ("DEIM", "b", "diagram-2.svg"),
+        ("LPT", "c", "diagram-3.svg"), ("RT-DETRv4", "c", "rtv4-panel.svg"),
+        ("LPT", "d", "selective-panel.svg"),
+    ]:
+        drawing = svg(COLUMN_W, PLATE_H, method, architecture(method, letter))
+        root = ET.fromstring(drawing)
+        scale = 3
+        layer = Image.new("RGBA", (COLUMN_W * scale, PLATE_H * scale), (255, 255, 255, 0))
+        draw = ImageDraw.Draw(layer)
+        labels = []
+        for node in root.findall(".//s:text", ns):
+            words = node.text or ""
+            labels.append(words)
+            bold = int(node.get("font-weight", "400")) >= 600
+            font = ImageFont.truetype("C:/Windows/Fonts/" + ("calibrib.ttf" if bold else "calibri.ttf"),
+                                      round(float(node.get("font-size", "16")) * scale))
+            anchor = {"middle": "ms", "end": "rs", "start": "ls"}[node.get("text-anchor", "middle")]
+            draw.text((float(node.get("x")) * scale, float(node.get("y")) * scale), words,
+                      font=font, fill=node.get("fill", INK), anchor=anchor)
+        memory = BytesIO()
+        layer.save(memory, "PNG")
+        encoded = b64encode(memory.getvalue()).decode("ascii")
+        linework = re.sub(r'<text\b[^>]*>[^<]*</text>', '', drawing)
+        linework = linework.replace('</title>', '</title><desc>' + escape(" · ".join(labels)) + '</desc>', 1)
+        linework = linework.replace('</svg>', f'<image width="{COLUMN_W}" height="{PLATE_H}" href="data:image/png;base64,{encoded}"/></svg>')
+        (OUTPUT / filename).write_text(linework, encoding="utf-8")
+        print(filename)
+
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--extended-only", action="store_true", help="Build only the two additional Figure 1-1 plates")
+    parser.add_argument("--extended-only", action="store_true", help="Build only the two additional comparison plates")
+    parser.add_argument("--auxiliary-only", action="store_true", help="Rebuild only five collapsed-comparison plates with the paper palette, without a browser")
     args = parser.parse_args()
+    if args.auxiliary_only:
+        render_auxiliary_without_browser()
+        raise SystemExit(0)
+    from playwright.sync_api import sync_playwright
     opts={"executable_path":os.environ["EVOLUTION_CHROMIUM"]} if "EVOLUTION_CHROMIUM" in os.environ else {}
     with sync_playwright() as p:
         browser=p.chromium.launch(**opts)

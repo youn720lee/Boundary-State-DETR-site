@@ -19,8 +19,8 @@ from make_transport_examples import REGIONS
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets" / "examples"
 W, H = 417, 282
-INK, BLUE, GREEN = "#171717", "#156082", "#48713f"
-PALE, RULE = "#e9f2f6", "#8a8a8a"
+INK, BLUE, GREEN = "#141414", "#37769F", "#DCECD4"
+PALE, RULE = "#C8DDEF", "#8a8a8a"
 
 
 def uri(im):
@@ -91,7 +91,7 @@ def draw_case(name):
         px = map_x(x)
         contents += f'<circle cx="{px:.2f}" cy="55" r="4" fill="{BLUE}" stroke="white" stroke-width="1.4"/>'
         contents += text(px, 97, f"c{j+1}", 13)
-    contents += '<rect x="22" y="106" width="373" height="29" fill="#e9f2f6"/>'
+    contents += '<rect x="22" y="106" width="373" height="29" fill="#F5E3D5"/>'
     contents += text(W/2, 125, "Query + probabilities + gaps + Mamba features", 14)
 
     # A conservative flow toward candidate c3: 0.06 from c2 and 0.08 from c4.
@@ -100,15 +100,15 @@ def draw_case(name):
     after = [.10, .14, .54, .12, .10]
     plot_positions = [136 * (d-distances[0]) / (distances[-1]-distances[0]) for d in distances]
     for left_x, title, probabilities, fill in [
-        (32, "Final decoder distribution", before, "#a6a6a6"),
-        (249, "Refined distribution", after, BLUE),
+        (32, "Final decoder distribution", before, "#BDBDBD"),
+        (249, "Refined distribution", after, "#C8DDEF"),
     ]:
         contents += text(left_x+68, 151, title, 13, 700)
         contents += line(f'M{left_x-8},217H{left_x+144}', "#747474", .8)
         for j, (position, probability) in enumerate(zip(plot_positions, probabilities)):
             px = left_x+position
             height = probability*82
-            contents += f'<rect x="{px-6:.2f}" y="{217-height:.2f}" width="12" height="{height:.2f}" fill="{fill}"/>'
+            contents += f'<rect x="{px-6:.2f}" y="{217-height:.2f}" width="12" height="{height:.2f}" fill="{fill}" stroke="{INK}" stroke-width=".7"/>'
             contents += text(px, 231, f"c{j+1}", 11)
     # The shared predictor emits signed flows only between neighboring offsets.
     x2, x3, x4 = (32+plot_positions[j] for j in (1, 2, 3))
