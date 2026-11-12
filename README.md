@@ -1,64 +1,63 @@
-# LWR — project website
+# Local Probability Transport — project website
 
 [English](https://youn720lee.github.io/Boundary-State-DETR-site/) · [한국어](https://youn720lee.github.io/Boundary-State-DETR-site/ko.html)
 
-This repository contains the bilingual project page, figures and animations for
-**Look Where You Regress: Candidate-Aligned Features for Object Detection**.
-The existing Pages address is preserved.
+**Local Probability Transport for Precise Object Detection**
 
-The current page describes Boundary Evidence v2, implemented at
-[`tfdet@8c9a2e4`](https://github.com/youn720lee/tfdet/commit/8c9a2e4b81c6d6cae2531feb1e7b1cd462062f21).
-The paper and page use **Look Where You Regress (LWR)** as the public method name;
-the existing `boundary_evidence` architecture name and v2 execution flags stay unchanged.
-Its [implementation and commands](https://github.com/youn720lee/tfdet/blob/dqm/platform/vfm_v3_detr/BOUNDARY_EVIDENCE_V2.md)
-are the source of truth:
+The public method name is **Local Probability Transport (LPT)**. The existing
+GitHub Pages address is preserved. The page describes `final_transport`, implemented
+in [`tfdet@720af927`](https://github.com/youn720lee/tfdet/commit/720af92780b9449748e838014ab6acd5c7724dfb).
+The [implementation protocol and experiment commands](https://github.com/youn720lee/tfdet/blob/dqm/platform/vfm_v3_detr/FINAL_TRANSPORT_L_EXPERIMENTS.md)
+define the current setting.
 
-- One encoded image supplies a stride-8, four-direction Mamba-style selective
-  state field shared across queries. There is no 32×32 interval table.
-- Direct query similarity, conditional first-hit distributions, separate no-hit
-  information and local inner/outer observations are read at native FDR candidate offset positions.
-- A zero-initialized shared head corrects the first decoder layer's distribution
-  logits once. Later FDR, LQE and native self-distillation remain in place.
-- Neighbour-directed denoising changes query boxes during training, not input
-  images. Standard image augmentation is retained; no paired-view branch or
-  external teacher is used.
+## Method
 
-The page presents the current method, its figures and the planned ablations.
-COCO results for this model are pending. Published D-FINE/DEIM values are linked
-to the official DEIM model zoo; the extended RT-DETRv4 comparison links its paper.
+- Encode one image. Build a shared stride-8 Mamba-style state field with four
+  directional image scans, then sample it at the native FDR candidate positions.
+- Use candidate observations, the query, current probabilities and physical
+  coordinate gaps to predict signed transfers between adjacent candidates.
+- Correct the **final cumulative FDR distribution**, immediately before Integral
+  and LQE. Native localization and GO-LSD objectives use the same corrected logits.
+- Preserve probability mass and constrain distribution movement by actual
+  coordinate distance. The default total budget is 3% of the uncorrected final
+  box width or height; it does not bound GT error or imply an AP gain.
+- Keep standard augmentation, native denoising and native detection losses.
+  No first-hit path, inner/outer band reads, paired view, feature-perturbation
+  branch, neighbor-directed DN or external teacher is used in this setting.
 
-## Publishing
+The four experiment rows are LPT, matched additive logits, additive logits with
+the same distance budget, and LPT without the state field. The scan-free row
+tests the complete state-feature module, not input-dependent selectivity alone.
 
-GitHub Pages serves `main` → `/ (root)` with **Deploy from a branch**.
-Changes pushed to `main` are deployed automatically. No build step is required;
-`.nojekyll` preserves the static files.
+New-model COCO AP and B300 latency are pending. Earlier architecture results are
+not presented as LPT measurements. D-FINE/DEIM AP values are published references
+linked to the official model zoo; the extended RT-DETRv4 comparison links its paper.
 
-## Local preview
+## Publishing and preview
+
+GitHub Pages serves `main` → `/ (root)` using **Deploy from a branch**.
+Pushing `main` deploys the static files; `.nojekyll` disables Jekyll processing.
 
 ```bash
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
 Open `http://127.0.0.1:8000/` or `http://127.0.0.1:8000/ko.html`.
-The `ko/` alias redirects to `ko.html`, preserving the query and section anchor.
-
-Edit `index.html` and `ko.html` together. Keep asset paths relative for the
-GitHub Pages project URL. Preserve photograph credits and the font licenses in
-`assets/fonts/`. Figures appear inline without download buttons.
+The `/ko/` alias redirects to `ko.html`, preserving the query and anchor.
+Edit English and Korean together and keep asset paths relative for GitHub Pages.
+Preserve photograph attribution and the licenses in `assets/fonts/`.
+Figures appear inline without download buttons.
 
 ## Figure sources
 
-- `tools/make_evidence_examples.py`: COCO example carousel, candidate positions
-  and evidence schematic. Photos are preserved; overlays are illustrative.
-- `tools/make_evolution.py`: D-FINE, DEIM, proposed model, and the collapsed
-  four-model comparison including RT-DETRv4.
-- `tools/make_architecture_film.py`: an autoplay architecture GIF with a persistent
-  detector overview and successive detail insets, plus a static reduced-motion
-  alternative and a mobile layout.
+- `tools/make_evidence_examples.py`: COCO carousel and an illustrative final
+  distribution update. Probabilities in the diagrams are explanatory examples.
+- `tools/make_evolution.py`: D-FINE, DEIM and LPT, plus the collapsed four-model
+  comparison with RT-DETRv4.
+- `tools/make_architecture_film.py`: persistent detector overview with successive
+  detail insets, a static reduced-motion alternative, and a mobile layout.
 
-All current diagrams use Calibri, restrained blue/green/gray accents and mostly
-black text. Set `EVOLUTION_CHROMIUM` to a locally installed Chromium executable
-when rendering with the scripts. Pillow and Playwright are required for rendering;
-the website itself has no runtime package dependency.
-
-The existing hosted Site is independent of this Pages deployment.
+Figures use Calibri with restrained blue/gray accents and black text.
+Rendering requires Pillow, Playwright and a Chromium browser; set
+`EVOLUTION_CHROMIUM` when an explicit browser executable is needed.
+The website itself has no runtime package dependency.

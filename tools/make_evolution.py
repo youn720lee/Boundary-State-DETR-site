@@ -21,11 +21,11 @@ from playwright.sync_api import sync_playwright
 
 
 OUTPUT = Path(__file__).resolve().parents[1] / "assets" / "evolution"
-NAMES = ["D-FINE", "DEIM", "LWR"]
+NAMES = ["D-FINE", "DEIM", "LPT"]
 DESCRIPTIONS = {
     "D-FINE": "Refine the box edges",
     "DEIM": "Supervise more matches",
-    "LWR": "Read where the box is refined",
+    "LPT": "Transport final edge probabilities",
     "RT-DETRv4": "Distill encoder features",
 }
 AP = [54.0, 54.7, None]
@@ -85,12 +85,12 @@ def architecture(method, letter):
         up(411, 388),
         node(357, "Backbone + encoder"),
         up(357, 329),
-        node(299, "Decoder layer 1"),
+        node(299, "Native decoder layers"),
         up(299, 268),
-        node(238, "FDR logits"),
+        node(238, "Final FDR logits"),
         up(133, 108),
         node(78, "Class + box prediction", "#156082", 184, True),
-        node(133, "Later decoder layers"),
+        node(133, "Integral + LQE"),
     ]
     if method == "D-FINE":
         pieces += [
@@ -131,24 +131,27 @@ def architecture(method, letter):
             label(278, 278, "weighted", 14),
             label(278, 293, "by GAM", 14),
         ]
-    elif method == "LWR":
-        # Evidence is added to layer-one logits, not to a late query embedding.
+    elif method == "LPT":
+        # Change the final distribution once, before every native consumer.
         pieces += [
-            up(238, 223), up(199, 163),
-            f'<circle cx="{axis}" cy="211" r="11" fill="white" stroke="{INK}" stroke-width="1.4"/>',
-            label(axis, 217, "+", 23),
-            path("M225 211H118", "#536b59", 1.6, "", "state"),
-            rectangle(225, 178, 119, 66, "#e1efd9", "#528248"),
-            label(284.5, 197, "Candidate", 16, 700),
-            label(284.5, 215, "evidence", 16, 700),
+            up(238, 224), up(198, 163),
+            f'<circle cx="{axis}" cy="211" r="12" fill="#e9f2f6" stroke="{INK}" stroke-width="1.4"/>',
+            label(axis, 217, "T", 20, 700),
+            label(66, 232, "p", 15),
+            label(66, 185, "p′", 15),
+            path("M225 211H119", TEAL, 1.6, "", "up"),
+            rectangle(225, 178, 119, 66, "#e9f2f6", "#7b9aaa"),
+            label(284.5, 197, "Adjacent-pair", 15, 700),
+            label(284.5, 215, "scores", 16, 700),
             label(284.5, 234, "Shared head", 14),
-            path("M285 285V248", "#536b59", 1.6, "", "state"),
+            path("M285 285V248", TEAL, 1.6, "", "up"),
             rectangle(225, 285, 119, 50, "#e9f2f6", "#7b9aaa"),
             label(284.5, 304, "Mamba field", 16, 700),
             label(284.5, 324, "stride 8", 15),
-            path("M197 371H285V339", "#536b59", 1.5, "", "state"),
-            path("M197 313H210V227H222", "#707070", 1.2, "4 3", "muted"),
-            label(151, 186, "Add once", 14),
+            path("M197 371H285V339", TEAL, 1.5, "", "up"),
+            path("M197 313H212V227H222", "#707070", 1.2, "", "muted"),
+            label(149, 185, "Local transfer", 14),
+            label(284.5, 264, "Native candidates", 14),
         ]
     return "".join(pieces)
 
@@ -242,7 +245,7 @@ def render_extended(browser):
     cdp.send("CSS.enable")
     for method, letter, filename in [
         ("RT-DETRv4", "c", "rtv4-panel.svg"),
-        ("LWR", "d", "selective-panel.svg"),
+        ("LPT", "d", "selective-panel.svg"),
     ]:
         save_plate(page, cdp, filename, COLUMN_W, method, architecture(method, letter))
     page.close()

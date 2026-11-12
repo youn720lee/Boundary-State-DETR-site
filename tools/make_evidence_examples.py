@@ -1,8 +1,8 @@
-"""Draw candidate-offset evidence schematics on existing, unmodified COCO crops.
+"""Draw local probability transport on existing, unmodified COCO crops.
 
 Run: python tools/make_evidence_examples.py
 Optional: --render-dir PATH writes PNG previews using Playwright Chromium.
-The boxes, selected offsets and cue pathways are schematics, not model outputs.
+The boxes, selected offsets and probability bars are schematics, not model outputs.
 """
 from argparse import ArgumentParser
 from base64 import b64encode
@@ -81,30 +81,46 @@ def draw_case(name):
         "Illustrative first-layer box and a subset of candidate offsets on three parallel outward rays. Positions are a schematic, not detector predictions."), encoding="utf-8")
 
     # Enlarge the same central image strip, with matched candidate positions.
-    # No synthetic activations, probability heights or inferred boundaries.
+    # Probability values below deliberately illustrate the operator, not a prediction.
     strip_left, strip_right = max(0, cx-15), min(W, candidate_x[-1]+18)
     strip = photo.crop((round(strip_left), round(cy-23), round(strip_right), round(cy+23)))
     map_x = lambda x: 22 + (x-strip_left) * 373 / (strip_right-strip_left)
-    contents = text(W/2, 19, "Read state features at these positions", 16, 700)
-    contents += f'<image x="22" y="30" width="373" height="57" href="{uri(strip)}" preserveAspectRatio="none"/>'
+    contents = text(W/2, 19, "Local probability transport", 17, 700)
+    contents += f'<image x="22" y="30" width="373" height="50" href="{uri(strip)}" preserveAspectRatio="none"/>'
     for j, x in enumerate(candidate_x):
         px = map_x(x)
-        contents += f'<circle cx="{px:.2f}" cy="59" r="4" fill="{BLUE}" stroke="white" stroke-width="1.4"/>'
-        contents += text(px, 105, f"c{j+1}", 14)
-    contents += line('M29,115H387', arrow=True)
-    contents += text(W/2, 132, "Center → outward order", 14)
-    labels = [(22, "Query", "similarity"), (151, "First-hit", "distribution"), (280, "Inner / outer", "local bands")]
-    for x, top_label, bottom_label in labels:
-        fill = "#e1efd9" if x == 151 else PALE
-        contents += f'<rect x="{x}" y="145" width="115" height="45" fill="{fill}" stroke="#747474" stroke-width=".8"/>'
-        contents += text(x+57.5, 163, top_label, 15, 700) + text(x+57.5, 181, bottom_label, 15)
-        contents += line(f'M{x+57.5},190V205H208.5V219', arrow=x==151)
-    contents += '<rect x="107" y="220" width="203" height="29" fill="#e8e8e8" stroke="#747474" stroke-width=".8"/>'
-    contents += text(W/2, 240, "Shared candidate-score head", 15, 700)
-    contents += text(W/2, 271, "Add once to the first FDR logits", 15)
+        contents += f'<circle cx="{px:.2f}" cy="55" r="4" fill="{BLUE}" stroke="white" stroke-width="1.4"/>'
+        contents += text(px, 97, f"c{j+1}", 13)
+    contents += '<rect x="22" y="106" width="373" height="29" fill="#e9f2f6"/>'
+    contents += text(W/2, 125, "Query + probabilities + gaps + Mamba features", 14)
+
+    # A conservative flow toward candidate c3: 0.06 from c2 and 0.08 from c4.
+    # Candidate coordinates keep their nonuniform spacing in both distributions.
+    before = [.10, .20, .40, .20, .10]
+    after = [.10, .14, .54, .12, .10]
+    plot_positions = [136 * (d-distances[0]) / (distances[-1]-distances[0]) for d in distances]
+    for left_x, title, probabilities, fill in [
+        (32, "Final decoder distribution", before, "#a6a6a6"),
+        (249, "Refined distribution", after, BLUE),
+    ]:
+        contents += text(left_x+68, 151, title, 13, 700)
+        contents += line(f'M{left_x-8},217H{left_x+144}', "#747474", .8)
+        for j, (position, probability) in enumerate(zip(plot_positions, probabilities)):
+            px = left_x+position
+            height = probability*82
+            contents += f'<rect x="{px-6:.2f}" y="{217-height:.2f}" width="12" height="{height:.2f}" fill="{fill}"/>'
+            contents += text(px, 231, f"c{j+1}", 11)
+    # The shared predictor emits signed flows only between neighboring offsets.
+    x2, x3, x4 = (32+plot_positions[j] for j in (1, 2, 3))
+    contents += line(f'M{x2:.2f},184Q{x2:.2f},167 {x3-8:.2f},167', BLUE, 1.6, arrow=True)
+    contents += line(f'M{x4:.2f},184Q{x4:.2f},167 {x3+8:.2f},167', BLUE, 1.6, arrow=True)
+    contents += line('M185,196H232', INK, 1.5, arrow=True)
+    contents += text(W/2, 246, "Budgeted local shifts; total probability stays 1", 13)
+    contents += text(W/2, 264, "Refined edge = Σ p′k ck", 15)
+    contents += text(W/2, 279, "Illustrative probabilities, not model predictions", 11)
     evidence = OUT / f"{name}-evidence.svg"
-    evidence.write_text(svg(f"Three candidate-evidence cues for the {name}", contents,
-        "The same central photo strip locates a subset of candidate offsets. Three branches represent direct query similarity, learned first-hit evidence and local inner/outer observations from the shared stride-8 state field. A shared head adds a correction to the first FDR logits. The diagram contains no measured feature or probability values."), encoding="utf-8")
+    evidence.write_text(svg(f"Local probability transport for the {name}", contents,
+        "The same COCO image strip marks nonuniform candidate-offset positions. Query features, current candidate probabilities, coordinate gaps and sampled stride-8 Mamba features predict signed probability flows between adjacent candidates. The final decoder distribution is corrected within a spatial-distance budget while preserving total probability. The edge is the expectation under the refined distribution. Probability bars and selected offsets are illustrative, not measured model predictions."), encoding="utf-8")
     return candidates, evidence
 
 
@@ -123,7 +139,7 @@ def main():
                 page.set_content('<style>html,body{margin:0}</style>'+path.read_text(encoding="utf-8"))
                 page.screenshot(path=str(args.render_dir / (path.stem + ".png")))
             browser.close()
-    print("Generated six candidate-evidence teaser SVGs.")
+    print("Generated six candidate-position and local-transport teaser SVGs.")
 
 
 if __name__ == "__main__":

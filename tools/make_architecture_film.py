@@ -1,4 +1,4 @@
-"""Render Boundary Evidence v2 with a persistent detector and animated insets.
+"""Render Local Probability Transport with a persistent detector and animated insets.
 
 Requires Pillow, Playwright and Calibri. EVOLUTION_CHROMIUM may point to an
 installed Chromium. Diagrams show mechanism; no detector output is fabricated.
@@ -19,13 +19,15 @@ INK, MUTED, LINE = "#141414", "#454545", "#c8cdcf"
 BLUE, PALE_BLUE = "#156082", "#e9f2f6"
 GREEN, PALE_GREEN = "#48713f", "#e1efd9"
 GRAY = "#e8e8e8"
-TITLE = "LWR: first-layer box refinement from stride-8 selective states"
-DESC = ("One image enters the backbone and encoder once. Stride-8 memory supplies a shared "
-        "four-direction Mamba-style state field. At native candidate-offset positions, query "
-        "similarity, a conditional first-hit law with a separate no-hit term, and local inner/outer "
-        "bands feed a shared head. Its zero-initialized output is added once to first-layer FDR "
-        "logits. Later decoder layers inherit the correction. Neighbour-directed denoising changes "
-        "training query boxes, not the image. The overview remains visible throughout the animation.")
+TITLE = "Local Probability Transport for Precise Object Detection"
+DESC = ("One image passes through the backbone and encoder. A shared four-direction "
+        "Mamba field is built from stride-8 memory and sampled at native candidate positions. "
+        "The final decoder distribution, query-conditioned visual cues, and actual candidate "
+        "gaps drive one shared adjacent-pair head. Local conservative transfers correct the "
+        "final distribution before Integral, LQE, FGL, and GO-LSD consume it. The total "
+        "physical one-dimensional transport distance is bounded by 3% of the uncorrected "
+        "final box width or height. Native denoising and losses are retained. "
+        "The overview remains visible while the details change.")
 
 def text(x, y, words, size=20, *, bold=False, color=INK, anchor="start"):
     return (f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" '
@@ -57,24 +59,24 @@ def circle(x, y, r=10, fill="white", edge=INK):
     return f'<circle cx="{x}" cy="{y}" r="{r}" fill="{fill}" stroke="{edge}" stroke-width="1.5"/>'
 
 def detector(photo, phase):
-    cx, left, width = 145, 37, 216
+    cx, left, width = 139, 27, 224
     out = [block(left,0,width,34,"Class scores + boxes",BLUE,dark=True),
-           block(left,60,width,37,"Later decoder layers"),
-           block(left,127,width,48,"FDR distribution",PALE_BLUE),
-           block(left,208,width,42,"Decoder layer 1"),
-           block(left,287,width,40,"Backbone + encoder")]
+           block(left,59,width,35,"Integral + LQE"),
+           block(left,120,width,43,"Local transport T",PALE_BLUE,19,BLUE),
+           block(left,192,width,40,"Final FDR distribution"),
+           block(left,262,width,38,"Native decoder layers"),
+           block(left,332,width,38,"Backbone + encoder")]
     out.extend(path(f"M{cx} {bottom}V{top}",arrow=True)
-               for bottom,top in [(60,35),(127,98),(208,176),(287,251),(368,328)])
-    out += [block(269,123,35,56,"LWR",PALE_GREEN,14,GREEN),
-            path("M269 151H255",GREEN,arrow=True),
-            path("M253 307H286V180",BLUE,arrow=True),
-            '<g transform="translate(305 250) rotate(-90)">'+text(0,0,"Stride-8 memory",14,anchor="middle")+'</g>',
-            path("M253 229H264V193H279V181",MUTED,1.2,arrow=True,dashed=True)]
-    if phase >= 0:
-        out.append(rect(266,120,41,62,"none",GREEN,2))
-    out += [f'<image x="70" y="368" width="150" height="99.6" href="{photo}"/>',
-            text(cx,493,"Input image",19,bold=True,anchor="middle"),
-            text(cx,516,"One backbone + encoder pass",16,anchor="middle")]
+               for bottom,top in [(59,35),(120,95),(192,164),(262,233),(332,301),(395,371)])
+    out += [text(152,184,"p",17),text(152,113,"p′",17),
+            block(264,236,46,73,"Mamba\nstride 8",PALE_BLUE,12,BLUE),
+            path("M251 350H288V312",BLUE,arrow=True),
+            path("M288 234V220H319V142H253",BLUE,arrow=True),
+            text(285,185,"Pair",13,anchor="middle"),
+            text(285,203,"scores",13,anchor="middle"),
+            rect(24,117,230,49,"none",BLUE,2),
+            f'<image x="65" y="395" width="148" height="98.3" href="{photo}"/>',
+            text(cx,516,"Input image",19,bold=True,anchor="middle")]
     return "".join(out)
 
 def marker_defs():
@@ -94,19 +96,24 @@ def grid(x,y,cols=8,rows=5,cell=19,active=None):
     return "".join(output)
 
 def overview_detail():
-    out=[text(20,34,"Boundary evidence at candidate offsets",25,bold=True),
-         text(20,62,"Read the same spatial positions that the FDR head scores.",18),
-         block(171,89,260,42,"Shared stride-8 Mamba field",PALE_BLUE),
-         block(171,162,260,42,"Sample candidate positions",GRAY),
-         path("M301 132V159",BLUE,arrow=True)]
-    for x,words in [(20,"Query\nsimilarity"),(218,"First-hit +\nno-hit evidence"),(416,"Inner / outer\nlocal bands")]:
-        out += [block(x,255,177,60,words,PALE_GREEN),
-                path(f"M301 205V229H{x+88.5}V252",BLUE,arrow=True),
-                path(f"M{x+88.5} 316V344H301V369",GREEN,arrow=True)]
-    out += [block(171,373,260,44,"Shared evidence head",PALE_GREEN,edge=GREEN),
-            path("M301 418V446",GREEN,arrow=True),
-            block(171,450,260,42,"Add to first-layer FDR logits",BLUE,dark=True),
-            text(301,521,"Zero-initialized correction · applied once",18,anchor="middle")]
+    out=[text(20,34,"Refine the final edge distribution",25,bold=True),
+         text(20,62,"Use visual evidence to move mass between adjacent candidates.",18),
+         block(22,101,171,52,"Final FDR logits",GRAY),
+         path("M197 127H224",arrow=True),
+         block(229,101,118,52,"Softmax p",PALE_BLUE),
+         path("M350 127H382",BLUE,arrow=True),
+         block(386,101,205,52,"Local transport T",PALE_BLUE,19,BLUE),
+         block(386,215,205,61,"Shared pair head",PALE_BLUE,19,BLUE),
+         path("M489 214V156",BLUE,arrow=True),
+         block(22,218,153,55,"Mamba field",PALE_BLUE),
+         block(202,218,153,55,"Query + p + gaps",GRAY),
+         path("M98 276V306H365V245H383",BLUE,arrow=True),
+         path("M357 245H383",MUTED,arrow=True),
+         path("M489 154V176H610V344H309V365",BLUE,arrow=True),
+         block(178,370,261,47,"Corrected distribution p′",BLUE,dark=True),
+         path("M309 420V451",BLUE,arrow=True),
+         text(309,481,"Integral · LQE · FGL · GO-LSD",22,bold=True,anchor="middle"),
+         text(309,516,"One distribution supplies boxes, scores, and localization losses.",17,anchor="middle")]
     return "".join(out)
 
 def field_detail():
@@ -125,80 +132,102 @@ def field_detail():
          text(24,510,"Candidate evidence is sampled from this field.",19)]
     return "".join(out)
 
-def hit_detail():
-    out=[text(20,34,"2. Candidate similarity and first-hit evidence",25,bold=True),
-         text(20,64,"A learned map converts query–state similarity into hazards αⱼ.",18),
-         text(23,114,"Box center",18),path("M119 109H572",BLUE,arrow=True),
-         text(353,96,"Order candidates outward",17,anchor="middle")]
-    for i,height in enumerate([22,40,78,24,6]):
-        x=168+i*77
-        out += [circle(x,143,5,BLUE,BLUE),rect(x-13,263-height,26,height,"#8ab4c6"),
-                text(x,285,f"p{i+1}",16,anchor="middle")]
-    out += [path("M145 263H518",LINE,1),
-            text(333,317,"Conditional first-hit masses (schematic)",18,anchor="middle"),
-            path("M20 341H594",LINE,1),
-            text(24,382,"mⱼ = αⱼ ∏ᵢ<ⱼ (1 − αᵢ)",24,bold=True),
-            text(24,418,"pⱼ = mⱼ / Σᵢ mᵢ",24),
-            text(312,418,"p∅ = ∏ᵢ (1 − αᵢ)",24),
-            text(24,464,"Normalize hits per nonempty ray; keep no-hit separately.",18),
-            text(24,496,"A model-defined cue, not a physical boundary measurement.",18)]
+def pair_detail():
+    out=[text(20,34,"2. Score each neighboring pair",25,bold=True),
+         text(20,62,"Sample the field at the decoder’s native candidate locations.",18),
+         text(20,100,"Support from the first-layer anchor",18,bold=True),
+         path("M39 162H574",BLUE,arrow=True)]
+    for i,x in enumerate([67,130,219,340,510]):
+        out += [circle(x,162,6,PALE_BLUE,BLUE),
+                text(x,143,"x"+str(i),17,anchor="middle")]
+    out += [path("M219 183V195H340V183",MUTED),
+            text(279.5,219,"Actual gap |x₃ − x₂|",18,anchor="middle"),
+            text(20,257,"Final probabilities",19,bold=True),
+            text(219,258,"p₂",21,anchor="middle"),text(340,258,"p₃",21,anchor="middle"),
+            path("M219 269V294H448V322",BLUE,arrow=True),
+            path("M340 269V294H448",BLUE),
+            block(42,326,246,59,"Query affinity + appearance",PALE_BLUE,17),
+            block(325,326,245,59,"p, actual gap, coverage",GRAY,17),
+            path("M166 388V418H309V444",BLUE,arrow=True),
+            path("M447 388V418H309",BLUE),
+            block(180,447,258,44,"Shared head → scores sᵢ",BLUE,dark=True),
+            text(309,523,"The same head scores every adjacent pair on all four box sides.",17,anchor="middle")]
     return "".join(out)
 
-def bands_detail():
-    out=[text(20,34,"3. Local evidence on both sides",25,bold=True),
-         text(20,64,"Compare nearby features inward and outward of each candidate.",18),
-         path("M52 169H555",BLUE,arrow=True),
-         text(304,141,"Direction away from the box center",18,anchor="middle")]
-    for i,x in enumerate([112,200,288,376,464]):
-        out += [block(x-32,190,64,70,"F" if i!=2 else "xⱼ",
-                      PALE_GREEN if i<2 else (BLUE if i==2 else PALE_BLUE),23,dark=i==2),
-                text(x,288,["−2","−1","0","+1","+2"][i],18,anchor="middle")]
-    out += [path("M69 303H243",GREEN,2),path("M333 303H507",BLUE,2),
-            text(156,329,"Inner band",20,bold=True,anchor="middle"),
-            text(420,329,"Outer band",20,bold=True,anchor="middle"),
-            text(288,367,"Offsets in stride-8 cells",17,anchor="middle"),
-            path("M20 392H594",LINE,1),text(24,433,"Read query similarity within each local band.",20),
-            text(24,467,"Compare inner and outer statistics across the candidate.",20),
-            text(24,508,"Three parallel rays sample each edge by default.",18)]
+def transport_detail():
+    out=[text(20,34,"3. Move mass locally",25,bold=True),
+         text(20,62,"Jᵢ = c tanh(sᵢ) × donor probability, with c < ½.",18)]
+    xs=[81,230,501]
+    for x,prob,name in zip(xs,[.2,.5,.3],["x₀","x₁","x₂"]):
+        out += [rect(x-22,228-prob*220,44,prob*220,"#b5c8d2"),
+                text(x,249,name,18,anchor="middle"),
+                text(x,220-prob*220,str(prob),18,bold=True,anchor="middle")]
+    out += [path("M40 228H567",MUTED),text(25,103,"p",21,bold=True),
+            path("M100 117H207",BLUE,2.1,arrow=True),
+            text(156,100,"J₀ = 0.08",19,anchor="middle"),
+            text(25,309,"p′",21,bold=True)]
+    for x,prob,name in zip(xs,[.12,.58,.3],["x₀","x₁","x₂"]):
+        out += [rect(x-22,442-prob*220,44,prob*220,BLUE),
+                text(x,463,name,18,anchor="middle"),
+                text(x,434-prob*220,str(prob),18,bold=True,anchor="middle")]
+    out += [path("M40 442H567",MUTED),
+            text(309,502,"p′ᵢ = pᵢ − Jᵢ + Jᵢ₋₁     ·     Σ p′ᵢ = 1",23,bold=True,anchor="middle"),
+            text(309,529,"Illustrative values; the support is shared before and after transport.",16,anchor="middle")]
     return "".join(out)
 
-def training_detail():
-    out=[text(20,34,"Neighbour-directed denoising queries",25,bold=True),
-         text(20,64,"Training changes query boxes; the image is encoded once.",18),
-         text(20,112,"Same-class GT pair",20,bold=True),
-         rect(26,137,88,106,"none",BLUE,2),rect(130,137,88,106,"none",BLUE,2),
-         path("M234 190H282",arrow=True),rect(301,143,112,94,"none",GREEN,2),
-         path("M383 135H413",GREEN,arrow=True),
-         text(357,269,"Shifted edge",19,bold=True,anchor="middle"),
-         text(357,292,"positive query",18,anchor="middle"),
-         rect(447,143,135,94,"none",INK,2),path("M502 143V237",MUTED,1,dashed=True),
-         text(515,269,"Merged box",19,bold=True,anchor="middle"),
-         text(515,292,"negative query",18,anchor="middle"),path("M20 329H594",LINE,1),
-         block(22,356,173,58,"Modify existing\nDN query slots",GRAY,18),
-         path("M198 385H224",arrow=True),block(227,356,156,58,"Same decoder",PALE_BLUE,18),
-         path("M386 385H413",arrow=True),block(417,356,177,58,"Native detection\nand DN losses",GRAY,18),
-         text(24,461,"GT-overlap checks screen ambiguous modified boxes.",19),
-         text(24,497,"DN queries are absent at inference.",19)]
+def budget_detail():
+    out=[text(20,34,"4. Bound the total transport distance",25,bold=True),
+         text(20,62,"Weight each transfer by its actual coordinate gap.",18),
+         block(22,102,270,62,"Native final distribution p",GRAY,18),
+         path("M295 133H330",arrow=True),
+         block(333,102,260,62,"Decode Wfinal, Hfinal",PALE_BLUE,18),
+         text(24,218,"D = Σᵢ |Jᵢ| · |xᵢ₊₁ − xᵢ|",28,bold=True),
+         text(24,268,"B = 0.03 × Wfinal   (left / right)",23),
+         text(24,301,"B = 0.03 × Hfinal   (top / bottom)",23),
+         path("M20 330H594",LINE,1),
+         text(24,378,"α = B / max(B, D)",28,bold=True),
+         path("M307 368H357",BLUE,arrow=True),
+         block(367,340,211,51,"Scale all J by α",PALE_BLUE,20,BLUE),
+         text(24,438,"W₁(p′, p) ≤ B",25,bold=True),
+         text(24,476,"Expected edge displacement is bounded by the same B.",19),
+         text(24,514,"The reference is the uncorrected final box in this forward pass.",17)]
+    return "".join(out)
+
+def outputs_detail():
+    out=[text(20,34,"5. Use one corrected distribution",25,bold=True),
+         text(20,62,"The correction precedes every native final-head consumer.",18),
+         block(168,104,278,57,"Corrected final distribution p′",BLUE,19,dark=True)]
+    for x,words in [(20,"Integral"),(220,"LQE"),(420,"FGL + GO-LSD")]:
+        out += [path(f"M307 164V211H{x+87}V256",BLUE,arrow=True),
+                block(x,260,174,53,words,PALE_BLUE,19,BLUE)]
+    out += [text(107,349,"Box coordinates",18,anchor="middle"),
+            text(307,349,"Classification score",18,anchor="middle"),
+            text(507,349,"Localization losses",18,anchor="middle"),
+            path("M416 238H600V369H416Z",MUTED,1.1,dashed=True),
+            text(507,398,"Training only",18,bold=True,anchor="middle"),
+            path("M20 429H594",LINE,1),
+            text(24,468,"Train with native denoising and the detector’s original losses.",18),
+            text(24,505,"A zero-initialized pair head reproduces the native distribution.",18)]
     return "".join(out)
 
 def detail(phase):
-    if phase in (-1,0,5):
+    if phase in (-1,0):
         return overview_detail()
-    return {1:field_detail,2:hit_detail,3:bands_detail,4:training_detail}[phase]()
+    return {1:field_detail,2:pair_detail,3:transport_detail,4:budget_detail,5:outputs_detail}[phase]()
 
 def scene(size,phase,photo):
     mobile=size==PORTRAIT
     w,h=size
     if mobile:
-        drawing=text(16,29,"LWR",25,bold=True)
+        drawing=text(16,29,"Local Probability Transport",25,bold=True)
         drawing+=group(135,49,1,detector(photo,phase))
         drawing+=rect(10,592,600,575,"white",LINE)+group(12,606,.98,detail(phase))
-        drawing+=path("M388 278H599V592" if phase==4 else "M439 201H599V592",GREEN,1.4,dashed=True)
+        drawing+=path("M389 191H599V592",BLUE,1.4,dashed=True)
     else:
-        drawing=text(22,37,"Detector (LWR)",27,bold=True)+text(365,37,"Candidate-aligned refinement",27,bold=True)
+        drawing=text(22,37,"Detector with LPT",27,bold=True)+text(365,37,"Local Probability Transport",27,bold=True)
         drawing+=rect(354,55,708,586,"white",LINE)+group(374,69,1.08,detail(phase))
         drawing+=group(13,60,1.08,detector(photo,phase))
-        drawing+=path("M287 306L354 360" if phase==4 else "M343 223L354 191",GREEN,1.4,dashed=True)
+        drawing+=path("M287 213L354 191",BLUE,1.4,dashed=True)
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img">'
             f'<title>{TITLE}</title><desc>{DESC}</desc>{marker_defs()}'
             f'<rect width="{w}" height="{h}" fill="white"/><g font-family="Calibri">{drawing}</g></svg>\n')
@@ -234,7 +263,7 @@ def save(browser,size,suffix,photo):
     for frame in frames:
         frame.putpalette(colors)
     frames[0].save(stem.with_suffix(".gif"),save_all=True,append_images=frames[1:],
-                   duration=[2600,3200,4000,3300,3700,2600],loop=0,disposal=1,optimize=False)
+                   duration=[3600,4000,4800,4800,5200,4200],loop=0,disposal=1,optimize=False)
     preview=Path(os.environ.get("EVIDENCE_FIGURE_PREVIEW","F:/CVPR27/_workspace/bsd-evidence-page-preview"))
     preview.mkdir(parents=True,exist_ok=True)
     for n,frame in enumerate(plates):
