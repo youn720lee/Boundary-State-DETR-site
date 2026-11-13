@@ -26,7 +26,14 @@ define the current setting.
   No first-hit path, inner/outer band reads, paired view, feature-perturbation
   branch, neighbor-directed DN or external teacher is used in this setting.
 
-The four experiment rows are SHIFT-DETR, matched additive logits, additive logits with
+The baseline is **DEIM-L (reproduced)**: the D-FINE architecture trained with the
+DEIM recipe through our RT-DETRv4-based host, with the external teacher, DSI and GAM
+disabled. Published D-FINE-L and DEIM-L remain separate reference rows. DEIM is the
+paper and training method; the compound labels D-FINE-DEIM and DEIM-D-FINE are not
+used as separate method names on the page. A fixed seed is used; there is no
+seed-repeat experiment table.
+
+The four refinement rows are SHIFT-DETR, matched additive logits, additive logits with
 the same distance budget, and SHIFT-DETR without the state field. The scan-free row
 tests the complete state-feature module, not input-dependent selectivity alone.
 
