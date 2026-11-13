@@ -23,11 +23,11 @@ import xml.etree.ElementTree as ET
 
 
 OUTPUT = Path(__file__).resolve().parents[1] / "assets" / "evolution"
-NAMES = ["D-FINE", "DEIM", "LPT"]
+NAMES = ["D-FINE", "DEIM", "SHIFT-DETR"]
 DESCRIPTIONS = {
     "D-FINE": "Refine the box edges",
     "DEIM": "Supervise more matches",
-    "LPT": "Transport final edge probabilities",
+    "SHIFT-DETR": "Transport final edge probabilities",
     "RT-DETRv4": "Distill encoder features",
 }
 AP = [54.0, 54.7, None]
@@ -133,7 +133,7 @@ def architecture(method, letter):
             label(278, 278, "weighted", 14),
             label(278, 293, "by GAM", 14),
         ]
-    elif method == "LPT":
+    elif method == "SHIFT-DETR":
         # Change the final distribution once, before every native consumer.
         pieces += [
             up(238, 224), up(198, 163),
@@ -247,7 +247,7 @@ def render_extended(browser):
     cdp.send("CSS.enable")
     for method, letter, filename in [
         ("RT-DETRv4", "c", "rtv4-panel.svg"),
-        ("LPT", "d", "selective-panel.svg"),
+        ("SHIFT-DETR", "d", "selective-panel.svg"),
     ]:
         save_plate(page, cdp, filename, COLUMN_W, method, architecture(method, letter))
     page.close()
@@ -284,8 +284,8 @@ def render_auxiliary_without_browser():
     ns = {"s": "http://www.w3.org/2000/svg"}
     for method, letter, filename in [
         ("D-FINE", "a", "diagram-1.svg"), ("DEIM", "b", "diagram-2.svg"),
-        ("LPT", "c", "diagram-3.svg"), ("RT-DETRv4", "c", "rtv4-panel.svg"),
-        ("LPT", "d", "selective-panel.svg"),
+        ("SHIFT-DETR", "c", "diagram-3.svg"), ("RT-DETRv4", "c", "rtv4-panel.svg"),
+        ("SHIFT-DETR", "d", "selective-panel.svg"),
     ]:
         drawing = svg(COLUMN_W, PLATE_H, method, architecture(method, letter))
         root = ET.fromstring(drawing)

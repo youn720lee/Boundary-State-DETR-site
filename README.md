@@ -1,10 +1,11 @@
-# Local Probability Transport — project website
+# SHIFT-DETR — project website
 
 [English](https://youn720lee.github.io/Boundary-State-DETR-site/) · [한국어](https://youn720lee.github.io/Boundary-State-DETR-site/ko.html)
 
-**Local Probability Transport for Precise Object Detection**
+**Local Probability Refinement for Precise Object Detection**
 
-The public method name is **Local Probability Transport (LPT)**. The existing
+The model name is **SHIFT-DETR**. SHIFT describes moving probability between
+neighboring candidate locations; it is a descriptive name, not an acronym. The existing
 GitHub Pages address is preserved. The page describes `final_transport`, implemented
 in [`tfdet@720af927`](https://github.com/youn720lee/tfdet/commit/720af92780b9449748e838014ab6acd5c7724dfb).
 The [implementation protocol and experiment commands](https://github.com/youn720lee/tfdet/blob/dqm/platform/vfm_v3_detr/FINAL_TRANSPORT_L_EXPERIMENTS.md)
@@ -25,12 +26,12 @@ define the current setting.
   No first-hit path, inner/outer band reads, paired view, feature-perturbation
   branch, neighbor-directed DN or external teacher is used in this setting.
 
-The four experiment rows are LPT, matched additive logits, additive logits with
-the same distance budget, and LPT without the state field. The scan-free row
+The four experiment rows are SHIFT-DETR, matched additive logits, additive logits with
+the same distance budget, and SHIFT-DETR without the state field. The scan-free row
 tests the complete state-feature module, not input-dependent selectivity alone.
 
 New-model COCO AP and B300 latency are pending. Earlier architecture results are
-not presented as LPT measurements. D-FINE/DEIM AP values are published references
+not presented as SHIFT-DETR measurements. D-FINE/DEIM AP values are published references
 linked to the official model zoo; the extended RT-DETRv4 comparison links its paper.
 
 ## Publishing and preview
@@ -52,7 +53,7 @@ Figures appear inline without download buttons.
 
 - `assets/paper-figures/`: the paper's Figures 1–3, with matching PDF, SVG,
   draw.io and raster versions. Figure 1 shows the detector overview; Figure 2
-  compares D-FINE, DEIM and LPT; Figure 3 expands the selective field, adjacent
+  compares D-FINE, DEIM and SHIFT-DETR; Figure 3 expands the selective field, adjacent
   candidate comparison and bounded transport. The COCO photograph source is
   documented in `assets/paper-figures/CREDITS.md`.
 - `tools/make_paper_figure_motion.py`: regenerate the site's PNGs and GIFs from

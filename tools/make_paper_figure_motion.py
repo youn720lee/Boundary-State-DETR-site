@@ -1,4 +1,4 @@
-"""Publish paper-exact LPT figures and motion overlays (Pillow + Poppler).
+"""Publish paper-exact SHIFT-DETR figures and motion overlays (Pillow + Poppler).
 
 The PDF remains the source of Calibri glyphs: no font file is redistributed.
 Motion indicates the reading sequence, not measured activations or predictions.

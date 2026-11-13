@@ -19,7 +19,7 @@ INK, MUTED, LINE = "#141414", "#454545", "#c8cdcf"
 BLUE, PALE_BLUE = "#156082", "#e9f2f6"
 GREEN, PALE_GREEN = "#48713f", "#e1efd9"
 GRAY = "#e8e8e8"
-TITLE = "Local Probability Transport for Precise Object Detection"
+TITLE = "Local Probability Refinement for Precise Object Detection"
 DESC = ("One image passes through the backbone and encoder. A shared four-direction "
         "Mamba field is built from stride-8 memory and sampled at native candidate positions. "
         "The final decoder distribution, query-conditioned visual cues, and actual candidate "
@@ -224,7 +224,7 @@ def scene(size,phase,photo):
         drawing+=rect(10,592,600,575,"white",LINE)+group(12,606,.98,detail(phase))
         drawing+=path("M389 191H599V592",BLUE,1.4,dashed=True)
     else:
-        drawing=text(22,37,"Detector with LPT",27,bold=True)+text(365,37,"Local Probability Transport",27,bold=True)
+        drawing=text(22,37,"Detector with SHIFT-DETR",27,bold=True)+text(365,37,"Local Probability Transport",27,bold=True)
         drawing+=rect(354,55,708,586,"white",LINE)+group(374,69,1.08,detail(phase))
         drawing+=group(13,60,1.08,detector(photo,phase))
         drawing+=path("M287 213L354 191",BLUE,1.4,dashed=True)
