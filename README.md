@@ -20,26 +20,18 @@ define the current setting.
 - Correct the **final cumulative FDR distribution**, immediately before Integral
   and LQE. Native localization and GO-LSD objectives use the same corrected logits.
 - Preserve probability mass and constrain distribution movement by actual
-  coordinate distance. The default total budget is 3% of the uncorrected final
+  coordinate distance. The reported two-step model shares a total budget of 5% of the uncorrected final
   box width or height; it does not bound GT error or imply an AP gain.
 - Keep standard augmentation, native denoising and native detection losses.
   No first-hit path, inner/outer band reads, paired view, feature-perturbation
   branch, neighbor-directed DN or external teacher is used in this setting.
 
-The baseline is **DEIM-L (reproduced)**: the D-FINE architecture trained with the
-DEIM recipe through our RT-DETRv4-based host, with the external teacher, DSI and GAM
-disabled. Published D-FINE-L and DEIM-L remain separate reference rows. DEIM is the
-paper and training method; the compound labels D-FINE-DEIM and DEIM-D-FINE are not
-used as separate method names on the page. A fixed seed is used; there is no
-seed-repeat experiment table.
-
-The four refinement rows are SHIFT-DETR, matched additive logits, additive logits with
-the same distance budget, and SHIFT-DETR without the state field. The scan-free row
-tests the complete state-feature module, not input-dependent selectivity alone.
-
-New-model COCO AP and B300 latency are pending. Earlier architecture results are
-not presented as SHIFT-DETR measurements. D-FINE/DEIM AP values are published references
-linked to the official model zoo; the extended RT-DETRv4 comparison links its paper.
+Table 1 reports the ten COCO val2017 rows from the manuscript. The reference is
+published DEIM-L (50 epochs). SHIFT-DETR-L (58 epochs, budget 0.05, two steps)
+reaches 55.1 AP and 59.9 AP75, ahead by 0.4 and 0.5 points respectively.
+The comparison permits backbone pretraining and excludes DINOv3, external
+detector-training teachers and Objects365. RT-DETRv4 appears in a separate
+architecture illustration. Accuracy for the other refinement ablations is pending.
 
 ## Publishing and preview
 
