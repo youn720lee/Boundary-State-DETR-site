@@ -2,7 +2,7 @@
 
 [English](https://youn720lee.github.io/Boundary-State-DETR-site/) · [한국어](https://youn720lee.github.io/Boundary-State-DETR-site/ko.html)
 
-**Local Probability Refinement for Precise Object Detection**
+**Bounded Local Probability Refinement for Object Detection**
 
 The model name is **SHIFT-DETR**. SHIFT describes moving probability between
 neighboring candidate locations; it is a descriptive name, not an acronym. The existing
@@ -26,12 +26,13 @@ define the current setting.
   No first-hit path, inner/outer band reads, paired view, feature-perturbation
   branch, neighbor-directed DN or external teacher is used in this setting.
 
-Table 1 reports the ten COCO val2017 rows from the manuscript. The reference is
-published DEIM-L (50 epochs). SHIFT-DETR-L (58 epochs, budget 0.05, two steps)
-reaches 55.1 AP and 59.9 AP75, ahead by 0.4 and 0.5 points respectively.
-The comparison permits backbone pretraining and excludes DINOv3, external
-detector-training teachers and Objects365. RT-DETRv4 appears in a separate
-architecture illustration. Accuracy for the other refinement ablations is pending.
+Table 1 compares published detector results on COCO val2017. SHIFT-DETR-L and
+published DEIM-L use the same HGNetv2-B4 stage-1 weights (SSLD on ImageNet-1K and ImageNet-22K)
+and a 50 + 8 epoch schedule. The SHIFT-DETR-L global batch size is 32. SHIFT-DETR-L (total budget 0.05, two steps)
+reaches 55.1 AP and 59.9 AP75, 0.4 and 0.5 points above DEIM-L respectively,
+and 0.2 AP above DEIM-L + BUTR. The comparison permits backbone pretraining and excludes
+foundation-model backbones, external teachers during detector training, and Objects365 detection pretraining.
+The site identifies pending mechanism tests and same-device runtime measurements.
 
 ## Publishing and preview
 
