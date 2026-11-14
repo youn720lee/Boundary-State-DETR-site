@@ -27,7 +27,7 @@ NAMES = ["D-FINE", "DEIM", "SHIFT-DETR"]
 DESCRIPTIONS = {
     "D-FINE": "Refine the box edges",
     "DEIM": "Supervise more matches",
-    "SHIFT-DETR": "Transport final edge probabilities",
+    "SHIFT-DETR": "Refine final edge probabilities",
     "RT-DETRv4": "Distill encoder features",
 }
 AP = [54.0, 54.7, None]
@@ -138,7 +138,7 @@ def architecture(method, letter):
         pieces += [
             up(238, 224), up(198, 163),
             f'<circle cx="{axis}" cy="211" r="12" fill="#C8DDEF" stroke="{INK}" stroke-width="1.4"/>',
-            label(axis, 217, "T", 20, 700),
+            label(axis, 216, "↔", 17, 700),
             label(66, 232, "p", 15),
             label(66, 185, "p′", 15),
             path("M225 211H119", TEAL, 1.6, "", "up"),

@@ -4,9 +4,7 @@
 
 **Bounded Local Probability Refinement for Object Detection**
 
-The model name is **SHIFT-DETR**. SHIFT describes moving probability between
-neighboring candidate locations; it is a descriptive name, not an acronym. The existing
-GitHub Pages address is preserved. The page describes `final_transport`, implemented
+The model name is **SHIFT-DETR**. SHIFT describes redistributing probability between neighboring candidate locations. The page describes `final_transport`, implemented
 in [`tfdet@720af927`](https://github.com/youn720lee/tfdet/commit/720af92780b9449748e838014ab6acd5c7724dfb).
 The [implementation protocol and experiment commands](https://github.com/youn720lee/tfdet/blob/dqm/platform/vfm_v3_detr/FINAL_TRANSPORT_L_EXPERIMENTS.md)
 define the current setting.
@@ -54,7 +52,7 @@ Figures appear inline without download buttons.
 - `assets/paper-figures/`: the paper's Figures 1–3, with matching PDF, SVG,
   draw.io and raster versions. Figure 1 shows the detector overview; Figure 2
   compares D-FINE, DEIM and SHIFT-DETR; Figure 3 expands the selective field, adjacent
-  candidate comparison and bounded transport. The COCO photograph source is
+  candidate comparison and bounded local probability refinement. The COCO photograph source is
   documented in `assets/paper-figures/CREDITS.md`.
 - `tools/make_paper_figure_motion.py`: regenerate the site's PNGs and GIFs from
   the bundled paper PDFs using Pillow and Poppler (`pdftoppm`). Optional

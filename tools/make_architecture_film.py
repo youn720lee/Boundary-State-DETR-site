@@ -1,4 +1,4 @@
-"""Render Local Probability Transport with a persistent detector and animated insets.
+"""Render local probability refinement with a persistent detector and animated insets.
 
 Requires Pillow, Playwright and Calibri. EVOLUTION_CHROMIUM may point to an
 installed Chromium. Diagrams show mechanism; no detector output is fabricated.
@@ -25,7 +25,7 @@ DESC = ("One image passes through the backbone and encoder. A shared four-direct
         "The final decoder distribution, query-conditioned visual cues, and actual candidate "
         "gaps drive one shared adjacent-pair head. Local conservative transfers correct the "
         "final distribution before Integral, LQE, FGL, and GO-LSD consume it. The total "
-        "physical one-dimensional transport distance is bounded by 3% of the uncorrected "
+        "one-dimensional Wasserstein distance is bounded by 5% of the uncorrected "
         "final box width or height. Native denoising and losses are retained. "
         "The overview remains visible while the details change.")
 
@@ -62,7 +62,7 @@ def detector(photo, phase):
     cx, left, width = 139, 27, 224
     out = [block(left,0,width,34,"Class scores + boxes",BLUE,dark=True),
            block(left,59,width,35,"Integral + LQE"),
-           block(left,120,width,43,"Local transport T",PALE_BLUE,19,BLUE),
+           block(left,120,width,43,"Local refinement",PALE_BLUE,19,BLUE),
            block(left,192,width,40,"Final FDR distribution"),
            block(left,262,width,38,"Native decoder layers"),
            block(left,332,width,38,"Backbone + encoder")]
@@ -102,7 +102,7 @@ def overview_detail():
          path("M197 127H224",arrow=True),
          block(229,101,118,52,"Softmax p",PALE_BLUE),
          path("M350 127H382",BLUE,arrow=True),
-         block(386,101,205,52,"Local transport T",PALE_BLUE,19,BLUE),
+         block(386,101,205,52,"Local refinement",PALE_BLUE,19,BLUE),
          block(386,215,205,61,"Shared pair head",PALE_BLUE,19,BLUE),
          path("M489 214V156",BLUE,arrow=True),
          block(22,218,153,55,"Mamba field",PALE_BLUE),
@@ -154,7 +154,7 @@ def pair_detail():
             text(309,523,"The same head scores every adjacent pair on all four box sides.",17,anchor="middle")]
     return "".join(out)
 
-def transport_detail():
+def redistribution_detail():
     out=[text(20,34,"3. Move mass locally",25,bold=True),
          text(20,62,"Jᵢ = c tanh(sᵢ) × donor probability, with c < ½.",18)]
     xs=[81,230,501]
@@ -172,24 +172,24 @@ def transport_detail():
                 text(x,434-prob*220,str(prob),18,bold=True,anchor="middle")]
     out += [path("M40 442H567",MUTED),
             text(309,502,"p′ᵢ = pᵢ − Jᵢ + Jᵢ₋₁     ·     Σ p′ᵢ = 1",23,bold=True,anchor="middle"),
-            text(309,529,"Illustrative values; the support is shared before and after transport.",16,anchor="middle")]
+            text(309,529,"Illustrative values; the candidate positions stay fixed during refinement.",16,anchor="middle")]
     return "".join(out)
 
 def budget_detail():
-    out=[text(20,34,"4. Bound the total transport distance",25,bold=True),
+    out=[text(20,34,"4. Bound the total redistribution distance",25,bold=True),
          text(20,62,"Weight each transfer by its actual coordinate gap.",18),
          block(22,102,270,62,"Native final distribution p",GRAY,18),
          path("M295 133H330",arrow=True),
          block(333,102,260,62,"Decode Wfinal, Hfinal",PALE_BLUE,18),
          text(24,218,"D = Σᵢ |Jᵢ| · |xᵢ₊₁ − xᵢ|",28,bold=True),
-         text(24,268,"B = 0.03 × Wfinal   (left / right)",23),
-         text(24,301,"B = 0.03 × Hfinal   (top / bottom)",23),
+         text(24,268,"B = 0.05 × Wfinal   (left / right)",23),
+         text(24,301,"B = 0.05 × Hfinal   (top / bottom)",23),
          path("M20 330H594",LINE,1),
-         text(24,378,"α = B / max(B, D)",28,bold=True),
+         text(24,378,"α = (B/T) / max(B/T, D)",28,bold=True),
          path("M307 368H357",BLUE,arrow=True),
          block(367,340,211,51,"Scale all J by α",PALE_BLUE,20,BLUE),
-         text(24,438,"W₁(p′, p) ≤ B",25,bold=True),
-         text(24,476,"Expected edge displacement is bounded by the same B.",19),
+         text(24,438,"W₁(p⁰, pᵀ) ≤ B",25,bold=True),
+         text(24,476,"Each of the two updates receives half of the total budget B.",19),
          text(24,514,"The reference is the uncorrected final box in this forward pass.",17)]
     return "".join(out)
 
@@ -213,18 +213,18 @@ def outputs_detail():
 def detail(phase):
     if phase in (-1,0):
         return overview_detail()
-    return {1:field_detail,2:pair_detail,3:transport_detail,4:budget_detail,5:outputs_detail}[phase]()
+    return {1:field_detail,2:pair_detail,3:redistribution_detail,4:budget_detail,5:outputs_detail}[phase]()
 
 def scene(size,phase,photo):
     mobile=size==PORTRAIT
     w,h=size
     if mobile:
-        drawing=text(16,29,"Local Probability Transport",25,bold=True)
+        drawing=text(16,29,"Local probability refinement",25,bold=True)
         drawing+=group(135,49,1,detector(photo,phase))
         drawing+=rect(10,592,600,575,"white",LINE)+group(12,606,.98,detail(phase))
         drawing+=path("M389 191H599V592",BLUE,1.4,dashed=True)
     else:
-        drawing=text(22,37,"Detector with SHIFT-DETR",27,bold=True)+text(365,37,"Local Probability Transport",27,bold=True)
+        drawing=text(22,37,"Detector with SHIFT-DETR",27,bold=True)+text(365,37,"Local probability refinement",27,bold=True)
         drawing+=rect(354,55,708,586,"white",LINE)+group(374,69,1.08,detail(phase))
         drawing+=group(13,60,1.08,detector(photo,phase))
         drawing+=path("M287 213L354 191",BLUE,1.4,dashed=True)

@@ -1,4 +1,4 @@
-"""Draw local probability transport on existing, unmodified COCO crops.
+"""Draw local probability refinement on existing, unmodified COCO crops.
 
 Run: python tools/make_evidence_examples.py
 Optional: --render-dir PATH writes PNG previews using Playwright Chromium.
@@ -85,7 +85,7 @@ def draw_case(name):
     strip_left, strip_right = max(0, cx-15), min(W, candidate_x[-1]+18)
     strip = photo.crop((round(strip_left), round(cy-23), round(strip_right), round(cy+23)))
     map_x = lambda x: 22 + (x-strip_left) * 373 / (strip_right-strip_left)
-    contents = text(W/2, 19, "Local probability transport", 17, 700)
+    contents = text(W/2, 19, "Local probability refinement", 17, 700)
     contents += f'<image x="22" y="30" width="373" height="50" href="{uri(strip)}" preserveAspectRatio="none"/>'
     for j, x in enumerate(candidate_x):
         px = map_x(x)
@@ -119,7 +119,7 @@ def draw_case(name):
     contents += text(W/2, 264, "Refined edge = Σ p′k ck", 15)
     contents += text(W/2, 279, "Illustrative probabilities, not model predictions", 11)
     evidence = OUT / f"{name}-evidence.svg"
-    evidence.write_text(svg(f"Local probability transport for the {name}", contents,
+    evidence.write_text(svg(f"Local probability refinement for the {name}", contents,
         "The same COCO image strip marks nonuniform candidate-offset positions. Query features, current candidate probabilities, coordinate gaps and sampled stride-8 Mamba features predict signed probability flows between adjacent candidates. The final decoder distribution is corrected within a spatial-distance budget while preserving total probability. The edge is the expectation under the refined distribution. Probability bars and selected offsets are illustrative, not measured model predictions."), encoding="utf-8")
     return candidates, evidence
 
@@ -139,7 +139,7 @@ def main():
                 page.set_content('<style>html,body{margin:0}</style>'+path.read_text(encoding="utf-8"))
                 page.screenshot(path=str(args.render_dir / (path.stem + ".png")))
             browser.close()
-    print("Generated six candidate-position and local-transport teaser SVGs.")
+    print("Generated six candidate-position and local-refinement teaser SVGs.")
 
 
 if __name__ == "__main__":
