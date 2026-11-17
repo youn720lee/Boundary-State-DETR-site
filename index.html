@@ -40,14 +40,14 @@
 <section aria-labelledby="overview-title" class="chapter" id="overview">
 <h2 id="overview-title">Detector overview</h2>
 <figure id="figure-1" class="paper-figure paper-overview">
-<div class="paper-visual"><a class="figure-fullsize" href="assets/paper-figures/fig1-overview.pdf?v=8769f81f" aria-label="Open Figure 1 as a PDF"><img src="assets/paper-figures/fig1-overview.webp?v=8769f81f" width="1200" height="1095" loading="lazy" alt="The pair MLP uses query–candidate and neighbor similarities. Both the box integral and LQE receive the refined edge logits."/></a></div>
+<div class="paper-visual"><a class="figure-fullsize" href="assets/paper-figures/fig1-overview.pdf?v=0285f2fd" aria-label="Open Figure 1 as a PDF"><img src="assets/paper-figures/fig1-overview.webp?v=0285f2fd" width="1200" height="1095" loading="lazy" alt="The pair MLP uses query–candidate and neighbor similarities. Both the box integral and LQE receive the refined edge logits."/></a></div>
 <figcaption class="caption"><strong>Figure 1. Vernier-DETR overview.</strong> All queries share a stride-8 feature map. The pair MLP compares each candidate with the query (<i>s</i><sub>i</sub>) and with its neighbor (<i>κ</i><sub>i</sub>). Its output controls the probability transferred between the two positions. The box integral and localization-quality estimation (LQE) both receive the refined logits <i>z</i><sup>T</sup>.</figcaption>
 </figure>
 </section>
 <section aria-labelledby="evolution-title" class="chapter evolution" id="evolution">
 <h2 id="evolution-title">From D-FINE to Vernier-DETR</h2>
 <figure id="figure-2" class="paper-figure paper-animated">
-<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="Figure 2, scroll horizontally for details"><a class="figure-fullsize" href="assets/paper-figures/fig2-evolution.pdf?v=cc54bdd1" aria-label="Open Figure 2 as a PDF"><img src="assets/paper-figures/fig2-evolution.webp?v=cc54bdd1" data-animation="assets/paper-figures/fig2-evolution.gif?v=cc54bdd1" width="1800" height="728" loading="lazy" alt="D-FINE, DEIM and Vernier-DETR share a decoder prediction path. In panel (c), the Vernier head feeds refined logits to the box integral and LQE."/></a></div>
+<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="Figure 2, scroll horizontally for details"><a class="figure-fullsize" href="assets/paper-figures/fig2-evolution.pdf?v=a7397754" aria-label="Open Figure 2 as a PDF"><img src="assets/paper-figures/fig2-evolution.webp?v=a7397754" data-animation="assets/paper-figures/fig2-evolution.gif?v=a7397754" width="1800" height="728" loading="lazy" alt="D-FINE, DEIM and Vernier-DETR share a decoder prediction path. In panel (c), the Vernier head feeds refined logits to the box integral and LQE."/></a></div>
 <figcaption class="caption"><strong>Figure 2. Where each method changes the detector.</strong> D-FINE updates candidate scores at each decoder layer. DEIM changes training through dense one-to-one matching. Vernier-DETR keeps this matching and uses query–candidate and neighbor similarities to refine the final distribution. The existing localization loss supervises the pair MLP.</figcaption>
 </figure>
 </section>
@@ -55,7 +55,7 @@
 <h2 id="architecture-title">Vernier-DETR architecture</h2>
 <div id="architecture-film">
 <figure id="figure-3" class="paper-figure paper-animated">
-<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="Figure 3, scroll horizontally for details"><a class="figure-fullsize" href="assets/paper-figures/fig3-framework.pdf" aria-label="Open Figure 3 as a PDF"><img src="assets/paper-figures/fig3-framework.webp" data-animation="assets/paper-figures/fig3-framework.gif" width="1800" height="708" loading="lazy" alt="The six-layer FDR decoder scores 33 candidates per edge. The Vernier head sends the refined logits to the box integral and LQE."/></a></div>
+<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="Figure 3, scroll horizontally for details"><a class="figure-fullsize" href="assets/paper-figures/fig3-framework.pdf?v=e4765cc2" aria-label="Open Figure 3 as a PDF"><img src="assets/paper-figures/fig3-framework.webp?v=e4765cc2" data-animation="assets/paper-figures/fig3-framework.gif?v=e4765cc2" width="1800" height="708" loading="lazy" alt="The six-layer FDR decoder scores 33 candidates per edge. The Vernier head sends the refined logits to the box integral and LQE."/></a></div>
 <figcaption class="caption"><strong>Figure 3. The six-layer decoder and the Vernier head.</strong> The first decoder layer sets the candidate coordinates. After the sixth layer, the Vernier head reads the shared feature map at those positions and applies the same pair MLP twice. A softmax converts the refined logits <i>z</i><sup>T</sup> into probabilities <i>p</i><sup>T</sup>. The box integral takes their expectation to locate each edge, and LQE uses them to adjust class scores.</figcaption>
 </figure>
 </div>

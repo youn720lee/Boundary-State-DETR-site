@@ -40,14 +40,14 @@
 <section aria-labelledby="overview-title" class="chapter" id="overview">
 <h2 id="overview-title">검출기 개요</h2>
 <figure id="figure-1" class="paper-figure paper-overview">
-<div class="paper-visual"><a class="figure-fullsize" href="assets/paper-figures/fig1-overview.pdf?v=8769f81f" aria-label="Figure 1 PDF 열기"><img src="assets/paper-figures/fig1-overview.webp?v=8769f81f" width="1200" height="1095" loading="lazy" alt="Pair MLP가 쿼리와 후보의 유사도, 이웃 후보끼리의 유사도를 읽는다. 보정한 로짓은 Integral과 LQE로 들어간다."/></a></div>
+<div class="paper-visual"><a class="figure-fullsize" href="assets/paper-figures/fig1-overview.pdf?v=0285f2fd" aria-label="Figure 1 PDF 열기"><img src="assets/paper-figures/fig1-overview.webp?v=0285f2fd" width="1200" height="1095" loading="lazy" alt="Pair MLP가 쿼리와 후보의 유사도, 이웃 후보끼리의 유사도를 읽는다. 보정한 로짓은 Integral과 LQE로 들어간다."/></a></div>
 <figcaption class="caption"><strong>Figure 1. Vernier-DETR의 전체 구조.</strong> 모든 쿼리가 stride-8 특징 맵을 공유한다. Pair MLP는 후보가 쿼리와 얼마나 비슷한지(<i>s</i><sub>i</sub>), 이웃 후보와 얼마나 비슷한지(<i>κ</i><sub>i</sub>)를 보고 두 위치 사이에서 옮길 확률을 정한다. 박스 좌표를 계산하는 Integral과 위치 품질을 추정하는 LQE는 모두 보정된 로짓 <i>z</i><sup>T</sup>를 받는다.</figcaption>
 </figure>
 </section>
 <section aria-labelledby="evolution-title" class="chapter evolution" id="evolution">
 <h2 id="evolution-title">D-FINE에서 Vernier-DETR까지</h2>
 <figure id="figure-2" class="paper-figure paper-animated">
-<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="Figure 2, 가로로 스크롤해 세부 내용 보기"><a class="figure-fullsize" href="assets/paper-figures/fig2-evolution.pdf?v=cc54bdd1" aria-label="Figure 2 PDF 열기"><img src="assets/paper-figures/fig2-evolution.webp?v=cc54bdd1" data-animation="assets/paper-figures/fig2-evolution.gif?v=cc54bdd1" width="1800" height="728" loading="lazy" alt="D-FINE, DEIM, Vernier-DETR의 예측 경로. (c)에서 Vernier head는 보정된 로짓을 Integral과 LQE에 전달한다."/></a></div>
+<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="Figure 2, 가로로 스크롤해 세부 내용 보기"><a class="figure-fullsize" href="assets/paper-figures/fig2-evolution.pdf?v=a7397754" aria-label="Figure 2 PDF 열기"><img src="assets/paper-figures/fig2-evolution.webp?v=a7397754" data-animation="assets/paper-figures/fig2-evolution.gif?v=a7397754" width="1800" height="728" loading="lazy" alt="D-FINE, DEIM, Vernier-DETR의 예측 경로. (c)에서 Vernier head는 보정된 로짓을 Integral과 LQE에 전달한다."/></a></div>
 <figcaption class="caption"><strong>Figure 2. 세 방법이 검출기를 바꾸는 지점.</strong> D-FINE은 디코더 층마다 경계 후보의 점수를 갱신한다. DEIM은 dense one-to-one matching으로 학습 방식을 바꾼다. Vernier-DETR은 이 매칭을 그대로 쓰고, 쿼리와 후보의 유사도 및 이웃 후보끼리의 유사도로 마지막 분포를 보정한다. Pair MLP는 기존 위치 손실로 학습한다.</figcaption>
 </figure>
 </section>
@@ -55,7 +55,7 @@
 <h2 id="architecture-title">Vernier-DETR의 구조</h2>
 <div id="architecture-film">
 <figure id="figure-3" class="paper-figure paper-animated">
-<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="Figure 3, 가로로 스크롤해 세부 내용 보기"><a class="figure-fullsize" href="assets/paper-figures/fig3-framework.pdf" aria-label="Figure 3 PDF 열기"><img src="assets/paper-figures/fig3-framework.webp" data-animation="assets/paper-figures/fig3-framework.gif" width="1800" height="708" loading="lazy" alt="FDR 디코더의 여섯 층이 변마다 후보 33개의 점수를 갱신한다. Vernier head의 보정된 로짓은 박스 Integral과 LQE에 들어간다."/></a></div>
+<div class="paper-visual paper-scroll" role="region" tabindex="0" aria-label="Figure 3, 가로로 스크롤해 세부 내용 보기"><a class="figure-fullsize" href="assets/paper-figures/fig3-framework.pdf?v=e4765cc2" aria-label="Figure 3 PDF 열기"><img src="assets/paper-figures/fig3-framework.webp?v=e4765cc2" data-animation="assets/paper-figures/fig3-framework.gif?v=e4765cc2" width="1800" height="708" loading="lazy" alt="FDR 디코더의 여섯 층이 변마다 후보 33개의 점수를 갱신한다. Vernier head의 보정된 로짓은 박스 Integral과 LQE에 들어간다."/></a></div>
 <figcaption class="caption"><strong>Figure 3. 6층 디코더와 Vernier head.</strong> 첫 디코더 층이 후보 좌표를 정한다. 여섯 번째 층을 지난 뒤 Vernier head는 그 좌표에서 특징을 읽고, 같은 Pair MLP로 보정을 두 번 수행한다. 보정한 로짓 <i>z</i><sup>T</sup>에 softmax를 적용하면 후보 확률 <i>p</i><sup>T</sup>가 된다. Integral은 이 분포의 기댓값으로 각 변의 좌표를 구하고, LQE는 같은 분포로 클래스 점수를 보정한다.</figcaption>
 </figure>
 </div>
