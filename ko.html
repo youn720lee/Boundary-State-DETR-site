@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#ffffff" name="theme-color"/><meta content="Vernier-DETR는 이웃한 경계 후보 위치의 이미지 특징을 비교해 박스 좌표의 확률 분포를 보정합니다. COCO val2017에서 L은 55.1 AP, X는 56.7 AP를 기록했습니다." name="description"/><title>Vernier-DETR: Refining Box-Edge Distributions with Features from Neighboring Candidates</title><link href="ko.html" hreflang="ko" rel="alternate"/><link href="index.html" hreflang="en" rel="alternate"/><link href="assets/mark.svg?v=vernier-20261117" rel="icon" type="image/svg+xml"/><link href="fonts.css?v=vernier-20261117" rel="stylesheet"/><link href="site.css?v=vernier-20261117" rel="stylesheet"/><link href="hero.css?v=vernier-20261117" rel="stylesheet"/><link href="evolution.css?v=vernier-20261117" rel="stylesheet"/><script defer="" src="hero.js?v=vernier-20261117"></script><link href="method-motion.css?v=vernier-20261117" rel="stylesheet"/><link href="method-figures.css?v=vernier-20261117" rel="stylesheet"/><script defer="" src="architecture-film.js?v=vernier-20261117"></script><meta content="Vernier-DETR: Refining Box-Edge Distributions with Features from Neighboring Candidates" property="og:title"/><meta content="Vernier-DETR는 이웃한 경계 후보 위치의 이미지 특징을 비교해 박스 좌표의 확률 분포를 보정합니다. COCO val2017에서 L은 55.1 AP, X는 56.7 AP를 기록했습니다." property="og:description"/><meta content="website" property="og:type"/></head>
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#ffffff" name="theme-color"/><meta content="Vernier-DETR는 이웃한 경계 후보 위치의 이미지 특징을 비교해 박스 좌표의 확률 분포를 보정합니다. COCO val2017에서 L은 55.1 AP, X는 56.8 AP를 기록했습니다." name="description"/><title>Vernier-DETR: Refining Box-Edge Distributions with Features from Neighboring Candidates</title><link href="ko.html" hreflang="ko" rel="alternate"/><link href="index.html" hreflang="en" rel="alternate"/><link href="assets/mark.svg?v=vernier-20261117" rel="icon" type="image/svg+xml"/><link href="fonts.css?v=vernier-20261117" rel="stylesheet"/><link href="site.css?v=vernier-20261117" rel="stylesheet"/><link href="hero.css?v=vernier-20261117" rel="stylesheet"/><link href="evolution.css?v=vernier-20261117" rel="stylesheet"/><script defer="" src="hero.js?v=vernier-20261117"></script><link href="method-motion.css?v=vernier-20261117" rel="stylesheet"/><link href="method-figures.css?v=vernier-20261117" rel="stylesheet"/><script defer="" src="architecture-film.js?v=vernier-20261117"></script><meta content="Vernier-DETR: Refining Box-Edge Distributions with Features from Neighboring Candidates" property="og:title"/><meta content="Vernier-DETR는 이웃한 경계 후보 위치의 이미지 특징을 비교해 박스 좌표의 확률 분포를 보정합니다. COCO val2017에서 L은 55.1 AP, X는 56.8 AP를 기록했습니다." property="og:description"/><meta content="website" property="og:type"/></head>
 <body id="top"><a class="skip" href="#main">연구 내용으로 건너뛰기</a>
 <nav aria-label="언어" class="language"><a href="index.html" lang="en">English</a><span class="divider">/</span><span aria-current="page">한국어</span></nav>
 <main id="main">
@@ -31,7 +31,7 @@
 <section class="chapter" id="abstract"><h2>초록</h2><div class="abstract-copy">
 <p>분포 기반 검출기는 경계가 놓일 수 있는 여러 좌표에 확률을 부여해 박스의 각 변을 정합니다. D-FINE의 각 디코더 층에서 회귀 헤드는 쿼리 벡터 하나를 받아 한 변의 후보 33개에 대한 점수 변화량을 예측합니다. 각 후보 좌표에서 이미지 특징을 따로 읽는 입력은 없습니다.</p>
 <p>Vernier-DETR는 이웃한 두 후보 좌표에서 이미지 특징을 직접 비교해 경계 분포를 보정합니다. 선택적 상태 공간 모델이 stride-8 특징 맵에 행과 열 방향의 문맥을 모으면 모든 쿼리가 이 맵을 공유합니다. 보정 헤드는 각 변의 후보 위치에서 특징을 읽고, 기존 위치 손실로 이웃 사이에 확률을 얼마나 옮길지 학습합니다. 두 후보 사이의 실제 거리까지 반영해 최종 경계 좌표가 움직일 수 있는 범위를 제한합니다.</p>
-<p>Objects365나 외부 교사 모델 없이 COCO train2017에서 검출기를 학습했습니다. COCO val2017에서 <strong>L은 55.1 AP, X는 56.7 AP</strong>로 공개 DEIM보다 각각 0.4점, 0.2점 높았습니다. L의 AP<sub>75</sub>는 0.5점 높았으며, NVIDIA T4에서 TensorRT FP16으로 640 × 640 이미지 한 장을 처리하는 데 평균 8.11 ms가 걸렸습니다.</p>
+<p>Objects365나 외부 교사 모델 없이 COCO train2017에서 검출기를 학습했습니다. COCO val2017에서 <strong>L은 55.1 AP, X는 56.8 AP</strong>로 공개 DEIM보다 각각 0.4점, 0.3점 높았습니다. L의 AP<sub>75</sub>는 0.5점 높았으며, NVIDIA T4에서 TensorRT FP16으로 640 × 640 이미지 한 장을 처리하는 데 평균 8.11 ms가 걸렸습니다.</p>
 </div></section>
 <div class="research-notes">
 <details id="motivation"><summary>연구 동기와 목표</summary><p>물체를 제대로 찾아도 박스 끝은 실제 경계 안쪽에 놓이거나 바깥으로 넘어갈 수 있습니다. 이웃한 두 좌표에 확률이 나뉘어 있다면, 어느 쪽이 경계에 가까운지 판단할 단서가 이미지에 있을까요? Vernier-DETR는 박스 좌표를 정하기 직전에 두 위치의 특징을 읽습니다. 이름은 주 눈금 사이를 더 정밀하게 읽는 버니어 눈금에서 따왔습니다.</p></details>
@@ -86,8 +86,8 @@
 </figure>
 </section>
 <section class="chapter" id="results"><h2>COCO val2017 검출 결과</h2>
-<div class="result-block"><h3 id="detector-comparison">표 1. L·X급 검출기 비교</h3>
-<p class="prose">Vernier-DETR-L은 <strong>55.1 AP</strong>, X는 <strong>56.7 AP</strong>로 표에 실린 같은 크기의 검출기 중 가장 높았다. 공개 DEIM과 비교하면 L은 AP가 0.4점, AP<sub>75</sub>가 0.5점 올랐다. X에서는 두 지표가 각각 0.2점 올랐다.</p>
+<div class="result-block"><h3 id="detector-comparison">표 1. L·X급 범용 객체 검출기 비교</h3>
+<p class="prose">Vernier-DETR-L은 <strong>55.1 AP</strong>, X는 <strong>56.8 AP</strong>로 표에 실린 같은 크기의 검출기 중 가장 높았다. 공개 DEIM과 비교하면 L은 AP가 0.4점, AP<sub>75</sub>가 0.5점 올랐다. X는 AP와 AP<sub>75</sub>가 각각 0.3점, AP<sub>50</sub>가 0.4점 높았다. 작은 객체에서는 0.3점, 중간 크기와 큰 객체에서는 각각 0.2점씩 올랐다.</p>
 <p class="table-caption" id="detector-comparison-protocol">검출기 학습에는 COCO train2017만 사용했다. 비교한 모델은 Objects365 사전학습, foundation model 백본, 검출기 학습 단계의 외부 teacher를 쓰지 않았다. 입력은 640 × 640이다. Vernier-DETR은 배포 모델의 파라미터 수와 T4에서 이미지 한 장의 평균 추론 시간(TensorRT FP16)을 보고한다. 비교 모델의 비용은 각 논문의 보고값이며 DEIM의 파라미터 수는 백만 단위로 반올림한 값이다. D-FINE과 DEIM의 학습 기간에는 마지막 학습 단계가 포함된다.</p>
 <div class="tablewrap detector-table" role="region" aria-labelledby="detector-comparison" tabindex="0">
 <table aria-labelledby="detector-comparison" aria-describedby="detector-comparison-protocol">
@@ -110,7 +110,6 @@
 <tr><th scope="row"><a href="https://arxiv.org/abs/2602.21010">Le-DETR-L</a></th><td>80</td><td>41.5</td><td>124.3</td><td><span aria-label="미보고">—</span></td><td>54.3</td><td>71.7</td><td>58.9</td><td>37.1</td><td>58.7</td><td>71.4</td></tr>
 <tr><th scope="row"><a href="https://arxiv.org/abs/2410.13842">D-FINE-L</a></th><td>80</td><td>31.0</td><td>91</td><td>8.07</td><td>54.0</td><td>71.6</td><td>58.4</td><td>36.5</td><td>58.0</td><td>71.9</td></tr>
 <tr><th scope="row"><a href="https://openaccess.thecvf.com/content/CVPR2025/html/Huang_DEIM_DETR_with_Improved_Matching_for_Fast_Convergence_CVPR_2025_paper.html">DEIM-L</a></th><td>58</td><td>31.0</td><td>91</td><td>8.07</td><td>54.7</td><td>72.4</td><td>59.4</td><td>36.9</td><td>59.6</td><td>71.8</td></tr>
-<tr><th scope="row"><a href="https://arxiv.org/abs/2610.33430">DEIM-L + BUTR</a></th><td>58</td><td>30.8</td><td>89.8</td><td>8.83</td><td>54.9</td><td>72.6</td><td>59.6</td><td>37.1</td><td>59.8</td><td>71.8</td></tr>
 <tr class="ours"><th scope="row">Vernier-DETR-L</th><td>58</td><td>30.8</td><td>91.3</td><td>8.11</td><td><strong>55.1</strong></td><td><strong>72.8</strong></td><td><strong>59.9</strong></td><td>36.8</td><td><strong>60.1</strong></td><td><strong>72.7</strong></td></tr>
 </tbody>
 <tbody><tr class="model-group"><th scope="rowgroup" colspan="11">X급 end-to-end 검출기</th></tr>
@@ -118,8 +117,7 @@
 <tr><th scope="row"><a href="https://arxiv.org/abs/2602.21010">Le-DETR-X</a></th><td>80</td><td>44.9</td><td>196.9</td><td><span aria-label="미보고">—</span></td><td>55.1</td><td>72.5</td><td>59.8</td><td>38.1</td><td>59.6</td><td>71.4</td></tr>
 <tr><th scope="row"><a href="https://arxiv.org/abs/2410.13842">D-FINE-X</a></th><td>80</td><td>62.0</td><td>202</td><td>12.89</td><td>55.8</td><td>73.7</td><td>60.2</td><td>37.3</td><td>60.5</td><td>73.4</td></tr>
 <tr><th scope="row"><a href="https://openaccess.thecvf.com/content/CVPR2025/html/Huang_DEIM_DETR_with_Improved_Matching_for_Fast_Convergence_CVPR_2025_paper.html">DEIM-X</a></th><td>58</td><td>62.0</td><td>202</td><td>12.89</td><td>56.5</td><td>74.0</td><td>61.5</td><td>38.8</td><td>61.4</td><td>74.2</td></tr>
-<tr><th scope="row"><a href="https://arxiv.org/abs/2610.33430">DEIM-X + BUTR</a></th><td>58</td><td>61.7</td><td>200.6</td><td>13.71</td><td>56.6</td><td>74.2</td><td><strong>61.7</strong></td><td>38.9</td><td>61.4</td><td>74.0</td></tr>
-<tr class="ours"><th scope="row">Vernier-DETR-X</th><td>58</td><td>61.7</td><td>202.8</td><td>12.93</td><td><strong>56.7</strong></td><td><strong>74.4</strong></td><td><strong>61.7</strong></td><td><strong>39.2</strong></td><td><strong>61.6</strong></td><td><strong>74.4</strong></td></tr>
+<tr class="ours"><th scope="row">Vernier-DETR-X</th><td>58</td><td>61.7</td><td>202.8</td><td>12.93</td><td><strong>56.8</strong></td><td><strong>74.4</strong></td><td><strong>61.8</strong></td><td><strong>39.1</strong></td><td><strong>61.6</strong></td><td><strong>74.4</strong></td></tr>
 </tbody>
 </table></div></div>
 <div class="result-block"><h3 id="transport-ablation">표 2. 보정 헤드와 spatial scan</h3>

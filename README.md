@@ -9,7 +9,7 @@ Vernier-DETR samples image features at the D-FINE decoder's candidate edge coord
 | Model | AP | AP50 | AP75 | AP small | AP medium | AP large | Deploy params | GFLOPs | T4 mean latency |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Vernier-DETR-L | 55.1 | 72.8 | 59.9 | 36.8 | 60.1 | 72.7 | 30.8M | 91.3 | 8.11 ms |
-| Vernier-DETR-X | 56.7 | 74.4 | 61.7 | 39.2 | 61.6 | 74.4 | 61.7M | 202.8 | 12.93 ms |
+| Vernier-DETR-X | 56.8 | 74.4 | 61.8 | 39.1 | 61.6 | 74.4 | 61.7M | 202.8 | 12.93 ms |
 
 Both detectors train for 58 epochs on COCO train2017 with ImageNet-pretrained backbones and no Objects365 or external teacher during detector training. Latency is the batch-one mean for 640 × 640 inputs on an NVIDIA T4 with TensorRT FP16. The pages reproduce the manuscript’s four tables and seven figures.
 
