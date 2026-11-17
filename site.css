@@ -27,8 +27,8 @@ a:focus-visible, summary:focus-visible, button:focus-visible, div[tabindex]:focu
 .mast { max-width: 1000px; margin: 0 auto; padding: 26px 24px 35px; text-align: center; }
 h1, h2, h3, .buttons, .teaser-heading { font-family: var(--display); color: var(--ink); }
 h1 { font-weight: 650; font-size: clamp(2.1rem, 5.5vw, 3rem); line-height: 1.125; letter-spacing: -.04em; margin: 0 0 9px; text-wrap: balance; }
-.mast .model-name, .mast .title-term { white-space: nowrap; }
-.mast .title-caliper { width: 1.42em; height: auto; margin-inline-end: .16em; vertical-align: -.14em; }
+.model-name, .mast .title-term { white-space: nowrap; }
+.title-caliper { width: 1.42em; height: auto; margin-inline-end: .16em; vertical-align: -.14em; }
 .byline { margin: 18px auto 20px; font-family: var(--display); line-height: 1.45; }
 .byline .authors { margin: 0; color: #1873b3; font-size: clamp(1.12rem, 2.4vw, 1.4rem); }
 .byline .affiliation { margin: 3px 0 0; color: var(--ink); font-size: clamp(1rem, 2vw, 1.22rem); text-wrap: balance; }
