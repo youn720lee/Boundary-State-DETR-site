@@ -2,16 +2,16 @@
 
 [English project page](https://youn720lee.github.io/Boundary-State-DETR-site/) · [한국어 프로젝트 페이지](https://youn720lee.github.io/Boundary-State-DETR-site/ko.html)
 
-Vernier-DETR samples image features at the D-FINE decoder's candidate edge coordinates. A shared head compares neighboring candidates and moves probability between them before the detector decodes the box. All queries read one stride-8 context map. Both model sizes use three sampling rays, two refinement steps, and a total distance budget of 0.05 times the unrefined box width or height.
+Vernier-DETR samples image features at the D-FINE decoder's candidate edge coordinates. A shared head compares neighboring candidates and moves probability between them before the detector decodes the box. All queries read one stride-8 context map. Both scales use three sampling rays, two refinement steps, and a total distance budget of 0.05 times the unrefined box width or height.
 
 ## COCO val2017
 
 | Model | AP | AP50 | AP75 | AP small | AP medium | AP large | Deploy params | GFLOPs | T4 mean latency |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Vernier-DETR-L | 55.1 | 72.8 | 59.9 | 36.8 | 60.1 | 72.7 | 30.8M | 91.3 | 8.11 ms |
-| Vernier-DETR-X | 56.8 | 74.4 | 61.8 | 39.1 | 61.6 | 74.4 | 61.7M | 202.8 | 12.93 ms |
+| Vernier-DETR-X | 56.9 | 74.4 | 61.9 | 39.1 | 61.7 | 74.4 | 61.7M | 202.8 | 12.93 ms |
 
-Both detectors train for 58 epochs on COCO train2017 with ImageNet-pretrained backbones and no Objects365 or external teacher during detector training. Latency is the batch-one mean for 640 × 640 inputs on an NVIDIA T4 with TensorRT FP16. The pages reproduce the manuscript’s four tables and seven figures.
+Both scales follow the same 58-epoch DEIM schedule on COCO train2017 with ImageNet-pretrained backbones and no Objects365 or external teacher during detector training. Latency is the batch-one mean for 640 × 640 inputs on an NVIDIA T4 with TensorRT FP16. We measured DEIM-L/X and Vernier-DETR-L/X under these conditions. The pages reproduce the manuscript’s four tables and seven figures.
 
 ## Editing and preview
 
