@@ -20,6 +20,18 @@
 .paper-figure .paper-visual picture,
 .paper-figure .paper-visual img { display: block; width: 100%; height: auto; }
 .paper-figure figcaption { margin: 1rem 0 0; }
+.figure-motion-toggle {
+  margin-top: .65rem;
+  padding: .35rem .7rem;
+  border: 1px solid #bdcbd2;
+  border-radius: .35rem;
+  background: #fff;
+  color: #235574;
+  font: inherit;
+  font-size: .86rem;
+  cursor: pointer;
+}
+.figure-motion-toggle:focus-visible { outline: 2px solid #235574; outline-offset: 2px; }
 .paper-overview .paper-visual { width: min(100%, 560px); }
 .paper-overview img { display: block; width: 100%; height: auto; }
 .paper-figure .paper-scroll { overflow-x: auto; scrollbar-width: thin; }

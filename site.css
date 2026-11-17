@@ -70,7 +70,6 @@ tbody tr:last-child { border-bottom: 1.5px solid #777; }
 .ours { background: #edf6fc; color: #18374a; }
 .ours th, .ours td { font-weight: 650; }
 #results table[aria-labelledby="detector-comparison"] th:first-child { white-space: nowrap; }
-#results table[aria-labelledby="detector-comparison"] td:nth-child(2) { text-align: left; }
 #results .ours td { font-weight: 400; }
 #results .tablewrap { margin-block: 12px; }
 .detector-table table { font-size: .87rem; }

@@ -1,0 +1,62 @@
+.figure-fullsize {
+  display: block;
+  color: inherit;
+}
+
+.figure-fullsize:focus-visible {
+  outline-offset: -3px;
+}
+
+.method-detail-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(22px, 4vw, 48px);
+  width: min(1080px, calc(100vw - 64px));
+  margin: 2rem 0 0 50%;
+  transform: translateX(-50%);
+}
+
+.method-detail-pair .paper-visual,
+.method-step .paper-visual {
+  position: static;
+  width: 100%;
+  transform: none;
+}
+
+.method-step {
+  display: grid;
+  grid-template-columns: minmax(0, 355px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(16px, 4vw, 42px);
+  margin-top: 3rem;
+}
+
+.method-step figcaption {
+  margin: 0;
+}
+
+.method-cases .paper-visual {
+  width: min(1000px, calc(100vw - 48px));
+}
+
+@media (max-width: 700px) {
+  .method-detail-pair, .method-step {
+    display: block;
+    width: 100%;
+    margin: 2rem 0 0;
+    transform: none;
+  }
+
+  .method-detail-pair .paper-figure + .paper-figure {
+    margin-top: 2.5rem;
+  }
+
+  .method-step .paper-visual {
+    max-width: 410px;
+    margin-inline: auto;
+  }
+
+  .method-step figcaption {
+    margin-top: 1rem;
+  }
+}
